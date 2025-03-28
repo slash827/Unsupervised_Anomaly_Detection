@@ -1,0 +1,326 @@
+Total EDA execution time: 191.34999012947083 seconds
+Without analyze_temporal_patterns method
+
+Loading 3 specific CSV files:
+- labelled_training_data.csv: 188.21 MB
+- labelled_validation_data.csv: 43.31 MB
+- labelled_testing_data.csv: 54.64 MB
+
+Total loaded data size: 286.16 MB
+Loaded data shape: (1141078, 17)
+Loaded train\validation\test data with 1_141_078 rows and 17 columns
+
+===== BASIC DATASET INFORMATION =====
+Dataset shape: (1141078, 17)
+
+First few rows:
+     timestamp  processId  threadId  parentProcessId  userId  mountNamespace  ... argsNum returnValue                                               args sus evil                 source_file
+0  1809.495787        381      7337                1     100      4026532231  ...       5           0  [{'name': 'option', 'type': 'int', 'value': 'P...   1    0  labelled_training_data.csv
+1  1809.495832        381      7337                1     100      4026532231  ...       1           0       [{'name': 'fd', 'type': 'int', 'value': 19}]   1    0  labelled_training_data.csv
+2  1809.495921        381      7337                1     100      4026532231  ...       0           0                                                 []   1    0  labelled_training_data.csv
+3  1894.139651       7347      7347             7341       0      4026531840  ...       2          -2  [{'name': 'pathname', 'type': 'const char*', '...   1    0  labelled_training_data.csv
+4  1894.142127       7347      7347             7341       0      4026531840  ...       4           0  [{'name': 'pathname', 'type': 'const char*', '...   1    0  labelled_training_data.csv
+
+[5 rows x 17 columns]
+
+Memory usage: 719.13 MB
+
+Memory usage by column (MB):
+- timestamp: 8.71 MB
+- processId: 8.71 MB
+- threadId: 8.71 MB
+- parentProcessId: 8.71 MB
+- userId: 8.71 MB
+- mountNamespace: 8.71 MB
+- processName: 69.01 MB
+- hostName: 75.10 MB
+- eventId: 8.71 MB
+- eventName: 70.28 MB
+- stackAddresses: 74.01 MB
+- argsNum: 8.71 MB
+- returnValue: 8.71 MB
+- args: 244.46 MB
+- sus: 8.71 MB
+- evil: 8.71 MB
+- source_file: 90.50 MB
+
+Number of duplicate rows: 0 (0.00%)
+
+===== DATA TYPE ANALYSIS =====
+Numeric columns: ['timestamp', 'processId', 'threadId', 'parentProcessId', 'userId', 'mountNamespace', 'eventId', 'argsNum', 'returnValue', 'sus', 'evil']
+Categorical columns: ['processName', 'hostName', 'eventName', 'stackAddresses', 'args', 'source_file']
+
+Data type distribution:
+int64      10
+object      6
+float64     1
+Name: count, dtype: int64
+
+===== MISSING VALUES ANALYSIS =====
+Empty DataFrame
+Columns: [Missing Values, Percentage]
+Index: []
+
+===== NUMERIC FEATURES ANALYSIS =====
+                     count          mean          std           min           25%           50%           75%           max         range  coefficient_of_variation
+timestamp        1141078.0  1.367449e+03  1154.433376  1.244392e+02  4.612974e+02  9.033516e+02  2.327305e+03  3.954588e+03   3830.148422              8.442238e-01
+processId        1141078.0  6.909070e+03  1816.699147  1.000000e+00  7.301000e+03  7.366000e+03  7.461000e+03  8.619000e+03   8618.000000              2.629441e-01
+threadId         1141078.0  6.913038e+03  1807.393062  1.000000e+00  7.301000e+03  7.366000e+03  7.461000e+03  8.619000e+03   8618.000000              2.614470e-01
+parentProcessId  1141078.0  2.467229e+03  2862.639715  0.000000e+00  1.870000e+02  1.385000e+03  4.489000e+03  7.672000e+03   7672.000000              1.160265e+00
+userId           1141078.0  1.437311e+02   350.094691  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  1.001000e+03   1001.000000              2.435762e+00
+mountNamespace   1141078.0  4.026532e+09   172.669668  4.026532e+09  4.026532e+09  4.026532e+09  4.026532e+09  4.026532e+09    448.000000              4.288297e-08
+eventId          1141078.0  2.372977e+02   354.831933  2.000000e+00  4.000000e+00  4.200000e+01  2.570000e+02  1.010000e+03   1008.000000              1.495303e+00
+argsNum          1141078.0  2.671557e+00     1.250393  0.000000e+00  1.000000e+00  3.000000e+00  4.000000e+00  5.000000e+00      5.000000              4.680390e-01
+returnValue      1141078.0  3.018248e+00   322.346826 -1.150000e+02  0.000000e+00  0.000000e+00  0.000000e+00  3.276800e+04  32883.000000              1.067993e+02
+sus              1141078.0  1.520615e-01     0.359081  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  1.000000e+00      1.000000              2.361418e+00
+evil             1141078.0  1.388441e-01     0.345784  0.000000e+00  0.000000e+00  0.000000e+00  0.000000e+00  1.000000e+00      1.000000              2.490447e+00
+
+Highly skewed columns (abs(skew) > 1):
+- returnValue: 24.68
+- threadId: -3.41
+- processId: -3.39
+- evil: 2.09
+- userId: 2.04
+- sus: 1.94
+- eventId: 1.51
+
+
+===== CORRELATION ANALYSIS =====
+
+Highly correlated feature pairs (|corr| > 0.8):
+- processId and threadId: 1.00
+- userId and evil: 0.97
+- userId and sus: 0.96
+- sus and evil: 0.95
+
+===== CATEGORICAL FEATURES ANALYSIS =====
+
+processName: 260 unique values
+processName
+ps                 447642
+systemd-udevd      332402
+tsm                149155
+sshd                96141
+systemd             28405
+systemd-journal     23357
+systemd-tmpfile     13014
+landscape-sysin      5668
+amazon-ssm-agen      5331
+snapd                4591
+Name: count, dtype: int64
+...
+
+hostName: 12 unique values
+hostName
+ubuntu             333796
+ip-10-100-1-217    188967
+ip-10-100-1-57     162378
+ip-10-100-1-120     95747
+ip-10-100-1-28      75648
+ip-10-100-1-55      75208
+ip-10-100-1-173     74593
+ip-10-100-1-34      73295
+ip-10-100-1-165     16010
+ip-10-100-1-79      15775
+ip-10-100-1-129     15026
+ip-10-100-1-169     14635
+Name: count, dtype: int64
+
+eventName: 46 unique values
+eventName
+close                 284655
+openat                274444
+security_file_open    170033
+connect               148610
+fstat                 119729
+stat                   51458
+access                 26018
+cap_capable            13976
+lstat                  12178
+socket                  9048
+Name: count, dtype: int64
+...
+
+stackAddresses: 112474 unique values
+stackAddresses
+[]                   843018
+[139692889307527]      2818
+[139692889305126]      2339
+[140504689305991]      2004
+[140504689303590]      1830
+[140504689301129]      1641
+[140214269716871]      1366
+[140442469730695]      1360
+[139743267876902]      1281
+[140225374566791]      1259
+Name: count, dtype: int64
+...
+
+args: 271266 unique values
+args
+[{'name': 'fd', 'type': 'int', 'value': 9}]                                                                                                                                                                                       
+                                              118555
+[{'name': 'fd', 'type': 'int', 'value': 6}]                                                                                                                                                                                       
+                                               54678
+[{'name': 'fd', 'type': 'int', 'value': 15}]                                                                                                                                                                                      
+                                               40755
+[{'name': 'fd', 'type': 'int', 'value': 3}]                                                                                                                                                                                       
+                                               23401
+[{'name': 'fd', 'type': 'int', 'value': 8}]                                                                                                                                                                                       
+                                                7153
+[{'name': 'fd', 'type': 'int', 'value': 4}]                                                                                                                                                                                       
+                                                7005
+[{'name': 'fd', 'type': 'int', 'value': 5}]                                                                                                                                                                                       
+                                                6020
+[{'name': 'cap', 'type': 'int', 'value': 'CAP_NET_ADMIN'}]                                                                                                                                                                        
+                                                5464
+[{'name': 'pathname', 'type': 'const char*', 'value': '/sys/devices/virtual/dmi/id/sys_vendor'}, {'name': 'flags', 'type': 'int', 'value': 'O_RDONLY|O_LARGEFILE'}, {'name': 'dev', 'type': 'dev_t', 'value': 22}, {'name': 'inode', 'type': 'unsigned long', 'value': 721}]      4417
+[{'name': 'fd', 'type': 'int', 'value': 15}, {'name': 'statbuf', 'type': 'struct stat*', 'value': '0x7FFC31AAB110'}]                                                                                                              
+                                                4056
+Name: count, dtype: int64
+...
+
+source_file: 3 unique values
+source_file
+labelled_training_data.csv      763144
+labelled_validation_data.csv    188967
+labelled_testing_data.csv       188967
+Name: count, dtype: int64
+
+===== TARGET VARIABLE ANALYSIS =====
+Target distribution:
+evil
+0    982646
+1    158432
+Name: count, dtype: int64
+Class balance ratio (minority/majority): 0.1612
+
+===== USER BEHAVIOR ANALYSIS =====
+Number of unique users: 8
+
+Actions per user summary:
+count         8.000000
+mean     142634.750000
+std      338934.405581
+min         150.000000
+25%        1351.500000
+50%        1779.000000
+75%       43050.250000
+max      970027.000000
+dtype: float64
+C:\Users\gilad\AppData\Local\Programs\Python\Python311\Lib\site-packages\seaborn\_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):
+
+Evil actions per user summary:
+count         8.000000
+mean      19804.000000
+std       55549.706876
+min           0.000000
+25%           0.000000
+50%           0.000000
+75%         296.250000
+max      157279.000000
+Name: evil, dtype: float64
+
+Evil ratio per user summary:
+count    8.000000
+mean     0.123249
+std      0.344965
+min      0.000000
+25%      0.000000
+50%      0.000000
+75%      0.002843
+max      0.976967
+Name: evil, dtype: float64
+C:\Users\gilad\AppData\Local\Programs\Python\Python311\Lib\site-packages\seaborn\_oldcore.py:1119: FutureWarning: use_inf_as_na option is deprecated and will be removed in a future version. Convert inf values to NaN before operating instead.
+  with pd.option_context('mode.use_inf_as_na', True):
+
+Number of suspicious users (evil ratio > 0.5): 1
+
+===== SEQUENTIAL PATTERN ANALYSIS =====
+Analyzing sequences for 8 random users...
+
+Sequence analysis summary:
+       total_actions  consecutive_evil  consecutive_evil_ratio
+count       8.000000          8.000000                8.000000
+mean   142634.750000      19791.500000                0.123109
+std    338934.405581      55550.907955                0.344999
+min       150.000000          0.000000                0.000000
+25%      1351.500000          0.000000                0.000000
+50%      1779.000000          0.000000                0.000000
+75%     43050.250000        272.500000                0.002529
+max    970027.000000     157270.000000                0.976917
+
+Found 1 users with >50% consecutive evil actions:
+      total_actions  consecutive_evil  consecutive_evil_ratio
+1001         160987            157270                0.976917
+
+===== FEATURE IMPORTANCE ANALYSIS =====
+
+Training Random Forest for feature importance using 100000 samples...
+
+Top 15 most important features:
+            Feature  Importance
+4            userId    0.210889
+3   parentProcessId    0.167875
+6       processName    0.148444
+12      returnValue    0.140303
+14      source_file    0.098909
+13             args    0.068349
+2          threadId    0.054359
+1         processId    0.046976
+0         timestamp    0.021395
+9         eventName    0.018360
+7          hostName    0.013839
+11          argsNum    0.008733
+8           eventId    0.001441
+10   stackAddresses    0.000127
+5    mountNamespace    0.000002
+Top 5 features: userId, parentProcessId, processName, returnValue, source_file
+
+===== BASELINE MODEL EVALUATION =====
+Training baseline Random Forest model...
+
+Baseline model performance:
+Accuracy: 0.9999
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     21509
+           1       1.00      1.00      1.00      3491
+
+    accuracy                           1.00     25000
+   macro avg       1.00      1.00      1.00     25000
+weighted avg       1.00      1.00      1.00     25000
+
+Model accuracy: 0.9999
+
+===== EDA SUMMARY =====
+
+===== FEATURE IMPORTANCE ANALYSIS =====
+
+Training Random Forest for feature importance using 100000 samples...
+
+Top 15 most important features:
+            Feature  Importance
+4            userId    0.210889
+3   parentProcessId    0.167875
+6       processName    0.148444
+12      returnValue    0.140303
+14      source_file    0.098909
+13             args    0.068349
+2          threadId    0.054359
+1         processId    0.046976
+0         timestamp    0.021395
+9         eventName    0.018360
+7          hostName    0.013839
+11          argsNum    0.008733
+8           eventId    0.001441
+10   stackAddresses    0.000127
+5    mountNamespace    0.000002
+1. Dataset has 1141078 rows and 17 columns
+2. Class distribution: {0: 982646, 1: 158432}
+3. There are 8 unique users in the dataset
+4. 1 users have an evil ratio > 0.5
+5. Top 3 most important features: userId, parentProcessId, processName

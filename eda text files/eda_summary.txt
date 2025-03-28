@@ -1,0 +1,5 @@
+1. Dataset has 1141078 rows and 17 columns
+2. Class distribution: {0: 982646, 1: 158432}
+3. There are 8 unique users in the dataset
+4. 1 users have an evil ratio > 0.5
+5. Top 3 most important features: userId, parentProcessId, processName
