@@ -1,78 +1,47 @@
-"""
-This script reads data from 'merged_data.csv', performs data transformation and feature engineering,
-and then saves the transformed data as 'transformed_data.csv'.
-
-The transformations include:
-- Mapping process-related columns (processId, parentProcessId) to binary values:
-  OS-related values (e.g., 0, 1, 2) are mapped to 0 and non-OS values to 1.
-- Mapping userId: system users (userId < 1000) are mapped to 0, non-system users to 1.
-- Mapping mountNamespace: if the value equals 4026531840, it is mapped to 0 (OS mount), else to 1.
-- Retaining eventId as is.
-- Mapping returnValue:
-    - 0 if the value is 0 (success),
-    - 1 if the value is positive (success with a return value),
-    - 2 if the value is negative (error).
-- Processing the 'args' column:
-    - Converting the string representation of a list into an actual list.
-    - Computing the number of arguments and storing it in a new column 'argsNum'.
-    - Replacing the original 'args' column with the processed list.
-
-The final transformed DataFrame is then saved as 'transformed_data.csv'.
-"""
-
 import pandas as pd
 import ast
 
 
-def process_args_row(row):
+def process_args_row(args):
     """
     Process a single row from the 'args' column.
 
     This function converts a string representation of a list into an actual list using ast.literal_eval,
-    calculates the number of elements (arguments) in the list, and returns a DataFrame with two columns:
-    - 'args': the processed list.
-    - 'argsNum': the number of arguments.
+    extracts up to four argument dictionaries, and assigns their 'type', 'value', and 'name' fields
+    into separate columns. If fewer than four arguments exist, the missing columns are filled with None.
     """
     try:
-        args_list = ast.literal_eval(row)
+        args_list = ast.literal_eval(args)
         if not isinstance(args_list, list):
             args_list = []
     except Exception as e:
-        print(f"Error processing args row: {row}. Error: {e}")
+        print(f"Error processing args row: {args}. Error: {e}")
         args_list = []
-    return pd.DataFrame({'args': [args_list], 'argsNum': [len(args_list)]})
+
+    extracted_data = {}
+    for i in range(4):  # We assume at most 4 arguments
+        if i < len(args_list) and isinstance(args_list[i], dict):
+            extracted_data[f'type_{i}'] = args_list[i].get('type', None)
+            extracted_data[f'value_{i}'] = args_list[i].get('value', None)
+            extracted_data[f'name_{i}'] = args_list[i].get('name', None)
+        else:
+            extracted_data[f'type_{i}'] = None
+            extracted_data[f'value_{i}'] = None
+            extracted_data[f'name_{i}'] = None
+
+    return extracted_data
 
 
-def process_args_dataframe(df, column_name):
+def process_args_dataframe(df):
     """
     Processes the 'args' column within the dataset.
 
-    For each row in the specified column, this function:
-      - Parses the string to convert it into an actual list.
-      - Computes the number of arguments.
-
-    The original 'args' column is replaced with the processed list, and a new column 'argsNum' is added.
+    This function expands the 'args' column into separate columns:
+    - type_i, value_i, and name_i for up to four arguments.
+    The original 'args' column is removed from the DataFrame.
     """
-    processed_dataframes = []
-    data = df[column_name].tolist()
-    counter = 0
-
-    for row in data:
-        if row == '[]':  # If there are no args, record empty list and 0 count
-            processed_dataframes.append(pd.DataFrame({'args': [[]], 'argsNum': [0]}))
-        else:
-            try:
-                ret = process_args_row(row)
-                processed_dataframes.append(ret)
-            except Exception as e:
-                print(f'Error Encounter: Row {counter} - {row}. Error: {e}')
-                processed_dataframes.append(pd.DataFrame({'args': [[]], 'argsNum': [0]}))
-        counter += 1
-
-    processed = pd.concat(processed_dataframes).reset_index(drop=True)
-    # Update the original DataFrame with the processed 'args' and new 'argsNum'
-    df['args'] = processed['args']
-    df['argsNum'] = processed['argsNum']
+    args_expanded = df['args'].apply(process_args_row).apply(pd.Series)
+    df = df.drop(columns=['args']).join(args_expanded)
     return df
 
 
@@ -86,58 +55,31 @@ def prepare_dataset(df, process_args=False):
       - 'mountNamespace': Map the specific value 4026531840 to 0, others to 1.
       - 'returnValue': Map 0 to 0; positive values to 1; negative values to 2.
 
-    It also processes the 'args' column to compute a new 'argsNum' column and update the 'args' values if process_args is True.
+    It also processes the 'args' column:
+      - If process_args=True, expands 'args' into multiple columns.
+      - Otherwise, computes 'argsNum' (the number of arguments) without expansion.
     """
-    # Transform processId: OS processes (0,1,2) mapped to 0, others mapped to 1
     df["processId"] = df["processId"].map(lambda x: 0 if x in [0, 1, 2] else 1)
-
-    # Transform parentProcessId: OS processes (0,1,2) mapped to 0, others mapped to 1
     df["parentProcessId"] = df["parentProcessId"].map(lambda x: 0 if x in [0, 1, 2] else 1)
-
-    # Transform userId: system users (userId < 1000) mapped to 0, non-system users mapped to 1
     df["userId"] = df["userId"].map(lambda x: 0 if x < 1000 else 1)
-
-    # Transform mountNamespace: if equals 4026531840, then OS mount (0), else non-OS mount (1)
     df["mountNamespace"] = df["mountNamespace"].map(lambda x: 0 if x == 4026531840 else 1)
-
-    # Retain eventId as is (this line is optional since no transformation is applied)
-    df["eventId"] = df["eventId"]
-
-    # Transform returnValue:
-    # 0 if returnValue is 0, 1 if positive, 2 if negative.
     df["returnValue"] = df["returnValue"].map(lambda x: 0 if x == 0 else (1 if x > 0 else 2))
 
-    # Process the 'args' column to update its values and compute 'argsNum'
     if process_args:
-        df = process_args_dataframe(df, 'args')
+        df = process_args_dataframe(df)
     else:
-        # If detailed processing is not enabled, compute argsNum without transforming 'args'
-        def compute_args_num(x):
-            try:
-                if x == '[]':
-                    return 0
-                args_list = ast.literal_eval(x)
-                if isinstance(args_list, list):
-                    return len(args_list)
-                else:
-                    return 0
-            except:
-                return 0
-
-        df["argsNum"] = df["args"].apply(compute_args_num)
+        df["argsNum"] = df["args"].apply(lambda x: len(ast.literal_eval(x)) if x != '[]' else 0)
 
     return df
 
 
 def main():
-    # Read the CSV file containing the raw data
+    """
+    Load the dataset, process it, and save the transformed data.
+    """
     input_file = "merged_data.csv"
     df = pd.read_csv(input_file)
-
-    # Prepare the dataset with argument processing enabled
     transformed_df = prepare_dataset(df, process_args=True)
-
-    # Save the transformed data to a new CSV file
     output_file = "transformed_data.csv"
     transformed_df.to_csv(output_file, index=False)
     print(f"Transformed data saved to {output_file}")
