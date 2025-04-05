@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.decomposition import TruncatedSVD
 import prince  # For MCA
+
 # === Config ===
 train_file = "labelled_training_data.csv"
 test_file = "labelled_testing_data.csv"
@@ -12,9 +13,9 @@ output_file = "preprocessed/prepared_data_cluster.csv"
 # === Load and Merge ===
 print("📥 Loading data...")
 df = pd.concat([
-    pd.read_csv(train_file),
-    pd.read_csv(test_file),
-    pd.read_csv(valid_file)
+    pd.read_csv(f"data{os.sep}{train_file}"),
+    pd.read_csv(f"data{os.sep}{test_file}"),
+    pd.read_csv(f"data{os.sep}{valid_file}")
 ], ignore_index=True)
 
 # === Binary Features ===
