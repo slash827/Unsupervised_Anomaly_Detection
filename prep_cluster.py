@@ -1,3 +1,14 @@
+'''
+Merges training, validation, and testing splits.
+
+Adds binary features based on expert rules:  
+1) userId >=1000 ->  Is Sytem or user as user would havea a value >=1000 
+2) bin_processId -> 0 if idle task, 2 if init/systemd , 3 if kthreadd
+3) bin_mountNamespace =  is mountNamespace == 4026531840 This namespace is commonly used for user-space processes with mnt/ access
+Parses args column → flattens to structured numeric fields.
+MCA on eventId and SVD on one-hot of other categoricals.
+Scales numeric + binary + args fields.
+'''
 import os
 import pandas as pd
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
