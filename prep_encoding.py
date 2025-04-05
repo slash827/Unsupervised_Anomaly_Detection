@@ -10,7 +10,7 @@ from tqdm import tqdm
 train_file = "labelled_training_data.csv"
 test_file = "labelled_testing_data.csv"
 valid_file = "labelled_validation_data.csv"
-output_file = "preprocessed/prepared_data_cluster.csv"
+output_file = "preprocessed/prepared_data_encoding.csv"
 
 # === Load and Merge ===
 print("📥 Loading data...")
