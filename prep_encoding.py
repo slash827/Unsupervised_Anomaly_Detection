@@ -1,10 +1,8 @@
 import os
 import pandas as pd
-import numpy as np
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.decomposition import TruncatedSVD
 import prince  # For MCA
-from tqdm import tqdm
 
 # === Config ===
 train_file = "labelled_training_data.csv"
