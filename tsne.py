@@ -1,17 +1,17 @@
 import os
+import time
 import glob
 
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.manifold import TSNE
 
 
+start = time.time()
 # Load and combine datasets
 csv_files = glob.glob(f"data{os.sep}*[!dns].csv")
 data = pd.concat([pd.read_csv(f) for f in csv_files], ignore_index=True)
@@ -149,3 +149,6 @@ for i, perp in enumerate(perplexities):
 plt.tight_layout()
 plt.savefig('tsne_perplexity_comparison.png')
 plt.show()
+
+end = time.time()
+print (f"total time took is: {end - start}")

@@ -1,0 +1,62 @@
+Dataset shape: (3807196, 16)
+
+First few rows:
+    timestamp  processId  parentProcessId  userId      processName  ... sus  evil threadId  mountNamespace  stackAddresses
+0  126.233491          1                0       0          systemd  ...   0     0      NaN             NaN             NaN
+1  126.233165        384                1     101  systemd-resolve  ...   0     0      NaN             NaN             NaN
+2  126.233559          1                0       0          systemd  ...   0     0      NaN             NaN             NaN
+3  126.233681          1                0       0          systemd  ...   0     0      NaN             NaN             NaN
+4  126.233796        384                1     101  systemd-resolve  ...   0     0      NaN             NaN             NaN
+
+[5 rows x 16 columns]
+
+Missing values:
+timestamp                0
+processId                0
+parentProcessId          0
+userId                   0
+processName              0
+hostName                 0
+eventId                  0
+eventName                0
+argsNum                  0
+returnValue              0
+args                     0
+sus                      0
+evil                     0
+threadId           2666118
+mountNamespace     2666118
+stackAddresses     2666118
+dtype: int64
+
+Numeric columns: ['timestamp', 'processId', 'parentProcessId', 'userId', 'eventId', 'argsNum', 'returnValue', 'sus', 'evil', 'threadId', 'mountNamespace']
+Categorical columns: ['processName', 'hostName', 'eventName', 'args', 'stackAddresses']
+Original dataset size: 3807196 samples
+Sampling 10000 records for T-SNE analysis...
+Working with sampled dataset of shape: (10000, 14)
+Performing T-SNE dimensionality reduction...
+[t-SNE] Computing 91 nearest neighbors...
+[t-SNE] Indexed 10000 samples in 0.025s...
+[t-SNE] Computed neighbors for 10000 samples in 1.099s...
+[t-SNE] Computed conditional probabilities for sample 1000 / 10000
+[t-SNE] Computed conditional probabilities for sample 2000 / 10000
+[t-SNE] Computed conditional probabilities for sample 3000 / 10000
+[t-SNE] Computed conditional probabilities for sample 4000 / 10000
+[t-SNE] Computed conditional probabilities for sample 5000 / 10000
+[t-SNE] Computed conditional probabilities for sample 6000 / 10000
+[t-SNE] Computed conditional probabilities for sample 7000 / 10000
+[t-SNE] Computed conditional probabilities for sample 8000 / 10000
+[t-SNE] Computed conditional probabilities for sample 9000 / 10000
+[t-SNE] Computed conditional probabilities for sample 10000 / 10000
+[t-SNE] Mean sigma: 0.012094
+[t-SNE] KL divergence after 250 iterations with early exaggeration: 63.259048
+[t-SNE] KL divergence after 1000 iterations: 0.493594
+
+Training Random Forest to analyze feature importance...
+
+Examining clusters in T-SNE space...
+Distribution of labels:
+   Label  Count
+0      0   9558
+1      1    442
+Testing perplexity values: [12, 25, 50]

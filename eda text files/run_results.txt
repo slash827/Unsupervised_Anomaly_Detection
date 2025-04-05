@@ -8,7 +8,7 @@ Loading 3 specific CSV files:
 
 Total loaded data size: 286.16 MB
 Loaded data shape: (1141078, 17)
-Loaded train\validation\test data with 1_141_078 rows and 17 columns
+Loaded train\validation\test data with 1,141,078 rows and 17 columns
 
 ===== BASIC DATASET INFORMATION =====
 Dataset shape: (1141078, 17)
