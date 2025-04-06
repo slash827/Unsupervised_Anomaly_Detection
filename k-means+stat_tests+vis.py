@@ -87,8 +87,17 @@ plt.close()
 
 print("PDF with KDE plots saved to plots/anova_ttest_features.pdf")
 
-print(f"\nSuccess Rates:")
-print(f"{percent_of_anomalies_that_are_evil:.2f}% of predicted anomalies were evil")
-print(f"{percent_of_evil_found:.2f}% of all evil events were successfully detected")
+# === Anomaly Detection Success Rates ===
+total_flagged = preds.sum()
+evil_found = ((df["is_anomaly"] == 1) & (df["evil"] == 1)).sum()
+total_evil = df["evil"].sum()
+
+percent_of_anomalies_that_are_evil = (evil_found / total_flagged) * 100 if total_flagged else 0
+percent_of_evil_found = (evil_found / total_evil) * 100 if total_evil else 0
+
+print(f"\n📊 Success Rates:")
+print(f"✔️  {percent_of_anomalies_that_are_evil:.2f}% of predicted anomalies were actually evil")
+print(f"🎯  {percent_of_evil_found:.2f}% of all evil events were successfully detected")
+
 
 
