@@ -1,0 +1,47 @@
+Loading data from: C:\Users\gilad\Documents\GitHub\Unsupervised_Anomaly_Detection\data
+Loading and preprocessing data...
+Dataset shape: (1141078, 16)
+Memory usage: 93.59 MB
+Columns: timestamp, processId, threadId, parentProcessId, userId, mountNamespace, processName, hostName, eventId, eventName, stackAddresses, argsNum, returnValue, args, sus, evil
+Total missing values: 0
+Creating engineered features...
+Processing features...
+Skipping high-cardinality categorical column: processName (260 unique values)
+Limited one-hot encoding for hostName (12 unique values)
+Limited one-hot encoding for eventName (46 unique values)
+Skipping high-cardinality categorical column: stackAddresses (112474 unique values)
+Skipping high-cardinality categorical column: args (271266 unique values)
+Processed features shape: (1141078, 34)
+Processed memory usage: 75.09 MB
+Training set shape: (912862, 34)
+Testing set shape: (228216, 34)
+Positive class (evil=1) in training: 126746 (13.88%)
+Positive class (evil=1) in testing: 31686 (13.88%)
+
+Which methods would you like to run?
+1. Auto-Sklearn (requires auto-sklearn package)
+2. Isolation Forest
+3. PyCaret (requires pycaret package)
+4. UMAP with Isolation Forest
+5. Cluster Analysis for Attack Patterns
+6. Run all methods
+0. Exit
+Enter your choice (0-6): 2
+
+Running Isolation Forest for anomaly detection...
+Estimated contamination from training data: 0.1388
+Precision: 0.0845
+Recall: 0.0841
+F1 Score: 0.0843
+Anomaly score distribution saved to 'isolation_forest_scores.png'
+
+Applying SHAP to explain model predictions...
+Using the provided model directly
+Using TreeExplainer for tree-based model
+Calculating SHAP values for 200 test samples...
+SHAP summary plot saved to 'shap_feature_importance.png'
+SHAP waterfall plot saved to 'shap_waterfall_plot.png'
+
+================================================================================
+Analysis complete! All results have been saved as images.
+=======================================================================
