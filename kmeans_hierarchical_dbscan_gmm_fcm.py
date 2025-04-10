@@ -28,7 +28,7 @@ SAMPLE_SIZE = 10000
 dims_range = list(range(2, df.shape[1], 2))  # PCA dimensions
 cluster_range = list(range(2, 11))  # Cluster counts
 algorithms = ['kmeans', 'hierarchical', 'dbscan', 'gmm', 'fcm']
-# == ground truth tests ==
+# == MI and ground truth tests ==
 EXT_REPEATS = 10
 EXT_SAMPLE_SIZE = 10000
 
