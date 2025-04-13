@@ -1,0 +1,26 @@
+📥 Loading data...
+Dataset shapes: Train=(763144, 17), Test=(188967, 17), Valid=(188967, 17)
+Evil label distribution in test set: {1: 158432, 0: 30535}
+⚙️ Engineering binary features...
+🧩 Parsing 'Args'...
+🧬 MCA on 'eventId' and categorical features...
+🔢 One-hot encoding + SVD...
+SVD explained variance: 0.94
+📐 Standardizing features...
+🏷️ Handling labels...
+🔍 Calculating feature importance...
+Top 10 important features:
+  scaled_returnValue: 0.1414
+  onehot_SVD_14: 0.1060
+  onehot_SVD_9: 0.0815
+  onehot_SVD_1: 0.0708
+  scaled_args_value_0: 0.0634
+  onehot_SVD_12: 0.0631
+  onehot_SVD_13: 0.0562
+  onehot_SVD_10: 0.0558
+  scaled_bin_userId: 0.0514
+  scaled_has_error: 0.0506
+Selected 21 out of 42 features
+💾 Saving to preprocessed\prepared_data_cluster.csv
+✅ Main dataset saved. Shape: (1141078, 45)
+Saved test-only data to preproc

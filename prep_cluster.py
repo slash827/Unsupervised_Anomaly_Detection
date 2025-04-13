@@ -16,6 +16,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.decomposition import TruncatedSVD
 import prince  # For MCA
 from tqdm import tqdm
+import time
 
 def prepare_cluster_data(train_file, test_file, valid_file, output_file="preprocessed/prepared_data_cluster.csv"):
     """
@@ -126,6 +127,9 @@ def prepare_cluster_data(train_file, test_file, valid_file, output_file="preproc
 
 # === EXAMPLE USAGE ===
 if __name__ == "__main__":
+    start = time.time()
     df = prepare_cluster_data("data/labelled_training_data.csv",
                               "data/labelled_testing_data.csv",
                               "data/labelled_validation_data.csv")
+    end = time.time()
+    print(f"total time took is: {end - start}")

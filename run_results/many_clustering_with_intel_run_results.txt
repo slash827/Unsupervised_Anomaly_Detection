@@ -1,0 +1,537 @@
+Intel(R) Extension for Scikit-learn* enabled (https://github.com/uxlfoundation/scikit-learn-intelex)
+🚀 Intel acceleration enabled for scikit-learn!
+
+======================================================================
+          INTEL-ACCELERATED CLUSTERING ALGORITHMS EVALUATION
+======================================================================
+Loading data from: preprocessed/prepared_data_cluster.csv
+Dataset loaded successfully: 1141078 samples with 24 features
+Feature matrix shape: (1141078, 22)
+Class distribution: {1.0: 158432, 0.0: 30535}
+Results will be saved to: intel_tests
+
+==================================================
+INTERNAL EVALUATION: Silhouette Scores
+Running 1 rounds with 1000 samples each
+Using stratified sampling to maintain class distribution
+==================================================
+
+--- Round 1/1 ---
+  Sampled 1000 points with class distribution: Evil=973 (97.30%), Benign=27
+  PCA to 2 dimensions (progress: 1/10)
+    Testing 2 clusters: kmeans=0.984 | hierarchical=0.984 | dbscan=0.470 | gmm=0.984 | fcm=0.541 | 
+    Testing 3 clusters: kmeans=0.572 | hierarchical=0.511 | dbscan=-1.000 | gmm=0.544 | fcm=0.556 | 
+    Testing 4 clusters: kmeans=0.576 | hierarchical=0.567 | dbscan=-1.000 | gmm=0.562 | fcm=0.502 | 
+    Testing 5 clusters: kmeans=0.591 | hierarchical=0.567 | dbscan=-1.000 | gmm=0.561 | fcm=0.504 | 
+    Testing 6 clusters: kmeans=0.564 | hierarchical=0.568 | dbscan=-1.000 | gmm=0.501 | fcm=0.477 | 
+    Testing 7 clusters: kmeans=0.569 | hierarchical=0.550 | dbscan=-1.000 | gmm=0.316 | fcm=0.526 | 
+    Testing 8 clusters: kmeans=0.582 | hierarchical=0.557 | dbscan=-1.000 | gmm=0.441 | fcm=0.517 | 
+    Testing 9 clusters: kmeans=0.561 | hierarchical=0.545 | dbscan=-1.000 | gmm=0.506 | fcm=0.511 | 
+    Testing 10 clusters: kmeans=0.568 | hierarchical=0.552 | dbscan=-1.000 | gmm=0.528 | fcm=0.534 | 
+  PCA to 4 dimensions (progress: 2/10)
+    Testing 2 clusters: kmeans=0.981 | hierarchical=0.981 | dbscan=-0.178 | gmm=0.981 | fcm=0.493 | 
+    Testing 3 clusters: kmeans=0.950 | hierarchical=0.950 | dbscan=-0.151 | gmm=0.950 | fcm=0.414 | 
+    Testing 4 clusters: kmeans=0.534 | hierarchical=0.491 | dbscan=0.510 | gmm=0.543 | fcm=0.484 | 
+    Testing 5 clusters: kmeans=0.556 | hierarchical=0.528 | dbscan=0.486 | gmm=0.529 | fcm=0.463 | 
+    Testing 6 clusters: kmeans=0.568 | hierarchical=0.542 | dbscan=0.462 | gmm=0.136 | fcm=0.505 | 
+    Testing 7 clusters: kmeans=0.533 | hierarchical=0.529 | dbscan=0.455 | gmm=0.138 | fcm=0.478 | 
+    Testing 8 clusters: kmeans=0.536 | hierarchical=0.534 | dbscan=0.455 | gmm=0.122 | fcm=0.466 | 
+    Testing 9 clusters: kmeans=0.542 | hierarchical=0.551 | dbscan=0.455 | gmm=0.436 | fcm=0.466 | 
+    Testing 10 clusters: kmeans=0.556 | hierarchical=0.524 | dbscan=-1.000 | gmm=0.406 | fcm=0.481 | 
+  PCA to 6 dimensions (progress: 3/10)
+    Testing 2 clusters: kmeans=0.978 | hierarchical=0.978 | dbscan=0.422 | gmm=0.978 | fcm=0.438 | 
+    Testing 3 clusters: kmeans=0.944 | hierarchical=0.944 | dbscan=0.424 | gmm=0.944 | fcm=0.337 | 
+    Testing 4 clusters: kmeans=0.479 | hierarchical=0.431 | dbscan=0.426 | gmm=0.592 | fcm=0.439 | 
+    Testing 5 clusters: kmeans=0.523 | hierarchical=0.493 | dbscan=0.454 | gmm=0.531 | fcm=0.389 | 
+    Testing 6 clusters: kmeans=0.531 | hierarchical=0.499 | dbscan=0.424 | gmm=0.497 | fcm=0.357 | 
+    Testing 7 clusters: kmeans=0.560 | hierarchical=0.456 | dbscan=0.454 | gmm=0.427 | fcm=0.430 | 
+    Testing 8 clusters: kmeans=0.515 | hierarchical=0.514 | dbscan=0.549 | gmm=0.507 | fcm=0.395 | 
+    Testing 9 clusters: kmeans=0.521 | hierarchical=0.518 | dbscan=0.549 | gmm=0.421 | fcm=0.435 | 
+    Testing 10 clusters: kmeans=0.540 | hierarchical=0.548 | dbscan=0.548 | gmm=0.499 | fcm=0.492 | 
+  PCA to 8 dimensions (progress: 4/10)
+    Testing 2 clusters: kmeans=0.978 | hierarchical=0.978 | dbscan=0.530 | gmm=0.978 | fcm=0.422 | 
+    Testing 3 clusters: kmeans=0.942 | hierarchical=0.942 | dbscan=0.531 | gmm=0.942 | fcm=0.324 | 
+    Testing 4 clusters: kmeans=0.464 | hierarchical=0.414 | dbscan=0.533 | gmm=0.732 | fcm=0.414 | 
+    Testing 5 clusters: kmeans=0.510 | hierarchical=0.480 | dbscan=0.385 | gmm=0.577 | fcm=0.358 | 
+    Testing 6 clusters: kmeans=0.517 | hierarchical=0.485 | dbscan=0.539 | gmm=0.574 | fcm=0.341 | 
+    Testing 7 clusters: kmeans=0.447 | hierarchical=0.438 | dbscan=0.550 | gmm=0.531 | fcm=0.401 | 
+    Testing 8 clusters: kmeans=0.554 | hierarchical=0.496 | dbscan=0.549 | gmm=0.536 | fcm=0.430 | 
+    Testing 9 clusters: kmeans=0.508 | hierarchical=0.504 | dbscan=0.547 | gmm=0.436 | fcm=0.460 | 
+    Testing 10 clusters: kmeans=0.543 | hierarchical=0.552 | dbscan=0.547 | gmm=0.242 | fcm=0.510 | 
+  PCA to 10 dimensions (progress: 5/10)
+    Testing 2 clusters: kmeans=0.977 | hierarchical=0.977 | dbscan=0.548 | gmm=0.977 | fcm=0.418 | 
+    Testing 3 clusters: kmeans=0.941 | hierarchical=0.941 | dbscan=0.549 | gmm=0.941 | fcm=0.320 | 
+    Testing 4 clusters: kmeans=0.459 | hierarchical=0.477 | dbscan=0.550 | gmm=0.634 | fcm=0.452 | 
+    Testing 5 clusters: kmeans=0.506 | hierarchical=0.486 | dbscan=0.393 | gmm=0.552 | fcm=0.352 | 
+    Testing 6 clusters: kmeans=0.509 | hierarchical=0.491 | dbscan=0.542 | gmm=0.537 | fcm=0.336 | 
+    Testing 7 clusters: kmeans=0.548 | hierarchical=0.435 | dbscan=0.548 | gmm=0.581 | fcm=0.398 | 
+    Testing 8 clusters: kmeans=0.443 | hierarchical=0.478 | dbscan=0.549 | gmm=0.438 | fcm=0.445 | 
+    Testing 9 clusters: kmeans=0.502 | hierarchical=0.485 | dbscan=0.565 | gmm=0.396 | fcm=0.470 | 
+    Testing 10 clusters: kmeans=0.539 | hierarchical=0.504 | dbscan=0.563 | gmm=0.431 | fcm=0.501 | 
+  PCA to 12 dimensions (progress: 6/10)
+    Testing 2 clusters: kmeans=0.977 | hierarchical=0.977 | dbscan=0.570 | gmm=0.977 | fcm=0.415 | 
+    Testing 3 clusters: kmeans=0.941 | hierarchical=0.941 | dbscan=0.562 | gmm=0.941 | fcm=0.318 | 
+    Testing 4 clusters: kmeans=0.457 | hierarchical=0.406 | dbscan=0.571 | gmm=0.649 | fcm=0.452 | 
+    Testing 5 clusters: kmeans=0.503 | hierarchical=0.472 | dbscan=0.394 | gmm=0.584 | fcm=0.426 | 
+    Testing 6 clusters: kmeans=0.506 | hierarchical=0.477 | dbscan=0.564 | gmm=0.536 | fcm=0.334 | 
+    Testing 7 clusters: kmeans=0.540 | hierarchical=0.428 | dbscan=0.575 | gmm=0.552 | fcm=0.394 | 
+    Testing 8 clusters: kmeans=0.499 | hierarchical=0.487 | dbscan=0.574 | gmm=0.540 | fcm=0.350 | 
+    Testing 9 clusters: kmeans=0.498 | hierarchical=0.494 | dbscan=0.574 | gmm=0.418 | fcm=0.384 | 
+    Testing 10 clusters: kmeans=0.535 | hierarchical=0.544 | dbscan=0.573 | gmm=0.548 | fcm=0.497 | 
+  PCA to 14 dimensions (progress: 7/10)
+    Testing 2 clusters: kmeans=0.977 | hierarchical=0.977 | dbscan=0.570 | gmm=0.977 | fcm=0.415 | 
+    Testing 3 clusters: kmeans=0.941 | hierarchical=0.941 | dbscan=0.562 | gmm=0.941 | fcm=0.318 | 
+    Testing 4 clusters: kmeans=0.456 | hierarchical=0.406 | dbscan=0.572 | gmm=0.668 | fcm=0.452 | 
+    Testing 5 clusters: kmeans=0.502 | hierarchical=0.472 | dbscan=0.395 | gmm=0.584 | fcm=0.425 | 
+    Testing 6 clusters: kmeans=0.505 | hierarchical=0.477 | dbscan=0.564 | gmm=0.609 | fcm=0.334 | 
+    Testing 7 clusters: kmeans=0.539 | hierarchical=0.428 | dbscan=0.575 | gmm=0.553 | fcm=0.393 | 
+    Testing 8 clusters: kmeans=0.499 | hierarchical=0.487 | dbscan=0.575 | gmm=0.540 | fcm=0.350 | 
+    Testing 9 clusters: kmeans=0.497 | hierarchical=0.493 | dbscan=0.574 | gmm=0.579 | fcm=0.384 | 
+    Testing 10 clusters: kmeans=0.535 | hierarchical=0.544 | dbscan=0.573 | gmm=0.548 | fcm=0.494 | 
+  PCA to 16 dimensions (progress: 8/10)
+    Testing 2 clusters: kmeans=0.977 | hierarchical=0.977 | dbscan=0.570 | gmm=0.977 | fcm=0.415 | 
+    Testing 3 clusters: kmeans=0.941 | hierarchical=0.941 | dbscan=0.563 | gmm=0.941 | fcm=0.318 | 
+    Testing 4 clusters: kmeans=0.456 | hierarchical=0.406 | dbscan=0.572 | gmm=0.726 | fcm=0.452 | 
+    Testing 5 clusters: kmeans=0.502 | hierarchical=0.472 | dbscan=0.395 | gmm=0.584 | fcm=0.425 | 
+    Testing 6 clusters: kmeans=0.505 | hierarchical=0.477 | dbscan=0.564 | gmm=0.609 | fcm=0.334 | 
+    Testing 7 clusters: kmeans=0.539 | hierarchical=0.428 | dbscan=0.575 | gmm=0.555 | fcm=0.393 | 
+    Testing 8 clusters: kmeans=0.499 | hierarchical=0.487 | dbscan=0.575 | gmm=0.540 | fcm=0.350 | 
+    Testing 9 clusters: kmeans=0.497 | hierarchical=0.493 | dbscan=0.574 | gmm=0.579 | fcm=0.384 | 
+    Testing 10 clusters: kmeans=0.535 | hierarchical=0.544 | dbscan=0.573 | gmm=0.548 | fcm=0.496 | 
+  PCA to 18 dimensions (progress: 9/10)
+    Testing 2 clusters: kmeans=0.977 | hierarchical=0.977 | dbscan=0.570 | gmm=0.977 | fcm=0.415 | 
+    Testing 3 clusters: kmeans=0.941 | hierarchical=0.941 | dbscan=0.563 | gmm=0.941 | fcm=0.318 | 
+    Testing 4 clusters: kmeans=0.456 | hierarchical=0.406 | dbscan=0.572 | gmm=0.726 | fcm=0.452 | 
+    Testing 5 clusters: kmeans=0.502 | hierarchical=0.472 | dbscan=0.395 | gmm=0.584 | fcm=0.425 | 
+    Testing 6 clusters: kmeans=0.505 | hierarchical=0.477 | dbscan=0.564 | gmm=0.609 | fcm=0.334 | 
+    Testing 7 clusters: kmeans=0.539 | hierarchical=0.428 | dbscan=0.575 | gmm=0.555 | fcm=0.393 | 
+    Testing 8 clusters: kmeans=0.499 | hierarchical=0.487 | dbscan=0.575 | gmm=0.540 | fcm=0.350 | 
+    Testing 9 clusters: kmeans=0.497 | hierarchical=0.493 | dbscan=0.574 | gmm=0.579 | fcm=0.384 | 
+    Testing 10 clusters: kmeans=0.535 | hierarchical=0.544 | dbscan=0.573 | gmm=0.548 | fcm=0.496 | 
+  PCA to 20 dimensions (progress: 10/10)
+    Testing 2 clusters: kmeans=0.977 | hierarchical=0.977 | dbscan=0.570 | gmm=0.977 | fcm=0.415 | 
+    Testing 3 clusters: kmeans=0.941 | hierarchical=0.941 | dbscan=0.563 | gmm=0.941 | fcm=0.318 | 
+    Testing 4 clusters: kmeans=0.456 | hierarchical=0.406 | dbscan=0.572 | gmm=0.726 | fcm=0.452 | 
+    Testing 5 clusters: kmeans=0.502 | hierarchical=0.472 | dbscan=0.395 | gmm=0.584 | fcm=0.425 | 
+    Testing 6 clusters: kmeans=0.505 | hierarchical=0.477 | dbscan=0.564 | gmm=0.609 | fcm=0.334 | 
+    Testing 7 clusters: kmeans=0.539 | hierarchical=0.428 | dbscan=0.575 | gmm=0.555 | fcm=0.393 | 
+    Testing 8 clusters: kmeans=0.499 | hierarchical=0.487 | dbscan=0.575 | gmm=0.540 | fcm=0.350 | 
+    Testing 9 clusters: kmeans=0.497 | hierarchical=0.493 | dbscan=0.574 | gmm=0.579 | fcm=0.384 | 
+    Testing 10 clusters: kmeans=0.535 | hierarchical=0.544 | dbscan=0.573 | gmm=0.548 | fcm=0.496 | 
+
+Saving silhouette score heatmaps...
+Saved heatmap -> intel_tests\kmeans_silhouette_heatmap.pdf
+Saved heatmap -> intel_tests\hierarchical_silhouette_heatmap.pdf
+Saved heatmap -> intel_tests\dbscan_silhouette_heatmap.pdf
+Saved heatmap -> intel_tests\gmm_silhouette_heatmap.pdf
+Saved heatmap -> intel_tests\fcm_silhouette_heatmap.pdf
+
+Top 5 parameter combinations for KMEANS:
+  #1: PCA 2D, k = 2 (Silhouette = 0.984)
+  #2: PCA 4D, k = 2 (Silhouette = 0.981)
+  #3: PCA 6D, k = 2 (Silhouette = 0.978)
+  #4: PCA 8D, k = 2 (Silhouette = 0.978)
+  #5: PCA 10D, k = 2 (Silhouette = 0.977)
+
+Top 5 parameter combinations for HIERARCHICAL:
+  #1: PCA 2D, k = 2 (Silhouette = 0.984)
+  #2: PCA 4D, k = 2 (Silhouette = 0.981)
+  #3: PCA 6D, k = 2 (Silhouette = 0.978)
+  #4: PCA 8D, k = 2 (Silhouette = 0.978)
+  #5: PCA 10D, k = 2 (Silhouette = 0.977)
+
+Top 5 parameter combinations for DBSCAN:
+  #1: PCA 16D, k = 8 (Silhouette = 0.575)
+  #2: PCA 16D, k = 7 (Silhouette = 0.575)
+  #3: PCA 18D, k = 8 (Silhouette = 0.575)
+  #4: PCA 18D, k = 7 (Silhouette = 0.575)
+  #5: PCA 20D, k = 8 (Silhouette = 0.575)
+
+Top 5 parameter combinations for GMM:
+  #1: PCA 2D, k = 2 (Silhouette = 0.984)
+  #2: PCA 4D, k = 2 (Silhouette = 0.981)
+  #3: PCA 6D, k = 2 (Silhouette = 0.978)
+  #4: PCA 8D, k = 2 (Silhouette = 0.978)
+  #5: PCA 10D, k = 2 (Silhouette = 0.977)
+
+Top 5 parameter combinations for FCM:
+  #1: PCA 2D, k = 3 (Silhouette = 0.556)
+  #2: PCA 2D, k = 2 (Silhouette = 0.541)
+  #3: PCA 2D, k = 10 (Silhouette = 0.534)
+  #4: PCA 2D, k = 7 (Silhouette = 0.526)
+  #5: PCA 2D, k = 8 (Silhouette = 0.517)
+
+==================================================
+EXTERNAL EVALUATION: Ground Truth Comparison
+Running 3 rounds with 10000 samples each
+Using stratified sampling to maintain class distribution
+==================================================
+
+--- External round 1/3 ---
+  Sampled 10000 points with class distribution: Evil=9732 (97.32%), Benign=268
+
+  Algorithm: KMEANS
+    PCA 2D, k=2... Silhouette=0.997, MI=0.000, Evil Recall=13.9%, Precision=89.8%
+    PCA 4D, k=2... Silhouette=0.987, MI=0.000, Evil Recall=12.7%, Precision=82.3%
+    PCA 6D, k=2... Silhouette=0.985, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 8D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 10D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+
+  Algorithm: HIERARCHICAL
+    PCA 2D, k=2... Silhouette=0.997, MI=0.000, Evil Recall=13.9%, Precision=89.8%
+    PCA 4D, k=2... Silhouette=0.987, MI=0.000, Evil Recall=12.7%, Precision=82.3%
+    PCA 6D, k=2... Silhouette=0.985, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 8D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 10D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+
+  Algorithm: DBSCAN
+    PCA 16D, k=8... Silhouette=0.595, MI=0.107, Evil Recall=14.9%, Precision=96.4%
+    PCA 16D, k=7... Silhouette=0.543, MI=0.107, Evil Recall=14.9%, Precision=96.3%
+    PCA 18D, k=8... Silhouette=0.597, MI=0.107, Evil Recall=14.9%, Precision=96.4%
+    PCA 18D, k=7... Silhouette=0.545, MI=0.107, Evil Recall=14.8%, Precision=96.3%
+    PCA 20D, k=8... Silhouette=0.597, MI=0.107, Evil Recall=14.9%, Precision=96.4%
+
+  Algorithm: GMM
+    PCA 2D, k=2... Silhouette=0.997, MI=0.000, Evil Recall=14.3%, Precision=92.6%
+    PCA 4D, k=2... Silhouette=0.987, MI=0.000, Evil Recall=12.7%, Precision=82.4%
+    PCA 6D, k=2... Silhouette=0.985, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 8D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.8%, Precision=82.2%
+    PCA 10D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+
+  Algorithm: FCM
+    PCA 2D, k=3... Silhouette=0.998, MI=0.000, Evil Recall=12.8%, Precision=82.6%
+    PCA 2D, k=2... Silhouette=0.997, MI=0.000, Evil Recall=13.3%, Precision=86.1%
+    PCA 2D, k=10... Silhouette=0.610, MI=0.061, Evil Recall=13.9%, Precision=89.4%
+    PCA 2D, k=7... Silhouette=0.846, MI=0.062, Evil Recall=14.4%, Precision=92.8%
+    PCA 2D, k=8... Silhouette=0.846, MI=0.062, Evil Recall=13.8%, Precision=89.3%
+
+--- External round 2/3 ---
+  Sampled 10000 points with class distribution: Evil=9732 (97.32%), Benign=268
+
+  Algorithm: KMEANS
+    PCA 2D, k=2... Silhouette=0.998, MI=0.000, Evil Recall=14.4%, Precision=93.4%
+    PCA 4D, k=2... Silhouette=0.987, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 6D, k=2... Silhouette=0.985, MI=0.000, Evil Recall=12.8%, Precision=82.2%
+    PCA 8D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 10D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+
+  Algorithm: HIERARCHICAL
+    PCA 2D, k=2... Silhouette=0.998, MI=0.000, Evil Recall=14.4%, Precision=93.4%
+    PCA 4D, k=2... Silhouette=0.987, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 6D, k=2... Silhouette=0.985, MI=0.000, Evil Recall=12.8%, Precision=82.2%
+    PCA 8D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 10D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+
+  Algorithm: DBSCAN
+    PCA 16D, k=8... Silhouette=0.574, MI=0.107, Evil Recall=15.0%, Precision=97.0%
+    PCA 16D, k=7... Silhouette=0.529, MI=0.108, Evil Recall=15.0%, Precision=96.8%
+    PCA 18D, k=8... Silhouette=0.574, MI=0.107, Evil Recall=15.0%, Precision=97.0%
+    PCA 18D, k=7... Silhouette=0.529, MI=0.108, Evil Recall=15.0%, Precision=96.8%
+    PCA 20D, k=8... Silhouette=0.574, MI=0.107, Evil Recall=15.0%, Precision=97.0%
+
+  Algorithm: GMM
+    PCA 2D, k=2... Silhouette=0.998, MI=0.000, Evil Recall=14.2%, Precision=90.9%
+    PCA 4D, k=2... Silhouette=0.982, MI=0.000, Evil Recall=12.7%, Precision=82.3%
+    PCA 6D, k=2... Silhouette=0.980, MI=0.000, Evil Recall=12.8%, Precision=82.3%
+    PCA 8D, k=2... Silhouette=0.979, MI=0.000, Evil Recall=12.7%, Precision=82.3%
+    PCA 10D, k=2... Silhouette=0.978, MI=0.000, Evil Recall=12.7%, Precision=82.3%
+
+  Algorithm: FCM
+    PCA 2D, k=3... Silhouette=0.999, MI=0.000, Evil Recall=12.8%, Precision=82.7%
+    PCA 2D, k=2... Silhouette=0.997, MI=0.000, Evil Recall=12.8%, Precision=82.6%
+    PCA 2D, k=10... Silhouette=0.827, MI=0.064, Evil Recall=14.5%, Precision=94.3%
+    PCA 2D, k=7... Silhouette=0.834, MI=0.063, Evil Recall=13.6%, Precision=87.6%
+    PCA 2D, k=8... Silhouette=0.831, MI=0.063, Evil Recall=13.5%, Precision=87.6%
+
+--- External round 3/3 ---
+  Sampled 10000 points with class distribution: Evil=9732 (97.32%), Benign=268
+
+  Algorithm: KMEANS
+    PCA 2D, k=2... Silhouette=0.998, MI=0.000, Evil Recall=13.2%, Precision=85.4%
+    PCA 4D, k=2... Silhouette=0.988, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 6D, k=2... Silhouette=0.986, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 8D, k=2... Silhouette=0.985, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 10D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+
+  Algorithm: HIERARCHICAL
+    PCA 2D, k=2... Silhouette=0.998, MI=0.000, Evil Recall=13.2%, Precision=85.4%
+    PCA 4D, k=2... Silhouette=0.988, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 6D, k=2... Silhouette=0.986, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 8D, k=2... Silhouette=0.985, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 10D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+
+  Algorithm: DBSCAN
+    PCA 16D, k=8... Silhouette=0.583, MI=0.104, Evil Recall=14.9%, Precision=96.1%
+    PCA 16D, k=7... Silhouette=0.536, MI=0.106, Evil Recall=14.9%, Precision=96.1%
+    PCA 18D, k=8... Silhouette=0.572, MI=0.105, Evil Recall=14.8%, Precision=96.1%
+    PCA 18D, k=7... Silhouette=0.538, MI=0.106, Evil Recall=14.8%, Precision=96.1%
+    PCA 20D, k=8... Silhouette=0.572, MI=0.105, Evil Recall=14.8%, Precision=96.1%
+
+  Algorithm: GMM
+    PCA 2D, k=2... Silhouette=0.998, MI=0.000, Evil Recall=13.9%, Precision=89.7%
+    PCA 4D, k=2... Silhouette=0.988, MI=0.000, Evil Recall=12.7%, Precision=82.2%
+    PCA 6D, k=2... Silhouette=0.986, MI=0.000, Evil Recall=12.8%, Precision=82.3%
+    PCA 8D, k=2... Silhouette=0.985, MI=0.000, Evil Recall=12.7%, Precision=82.1%
+    PCA 10D, k=2... Silhouette=0.984, MI=0.000, Evil Recall=12.7%, Precision=82.1%
+
+  Algorithm: FCM
+    PCA 2D, k=3... Silhouette=0.998, MI=0.000, Evil Recall=12.7%, Precision=82.4%
+    PCA 2D, k=2... Silhouette=0.998, MI=0.000, Evil Recall=13.1%, Precision=84.9%
+    PCA 2D, k=10... Silhouette=0.612, MI=0.060, Evil Recall=14.5%, Precision=92.9%
+    PCA 2D, k=7... Silhouette=0.582, MI=0.049, Evil Recall=15.0%, Precision=96.6%
+    PCA 2D, k=8... Silhouette=0.609, MI=0.059, Evil Recall=15.1%, Precision=96.8%
+
+==================================================
+STATISTICAL ANALYSIS: External Evaluation Results
+==================================================
+
+KMEANS: PCA 2D, k=2
+  Internal Silhouette: 0.984
+  External Metrics:
+    Silhouette: 0.998 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.998 ± 0.000
+    Evil Recall: 13.9% ± 0.5%
+    Evil Precision: 89.5% ± 3.3%
+
+KMEANS: PCA 4D, k=2
+  Internal Silhouette: 0.981
+  External Metrics:
+    Silhouette: 0.987 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.987 ± 0.000
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.0%
+
+KMEANS: PCA 6D, k=2
+  Internal Silhouette: 0.978
+  External Metrics:
+    Silhouette: 0.985 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.985 ± 0.000
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.0%
+
+KMEANS: PCA 8D, k=2
+  Internal Silhouette: 0.978
+  External Metrics:
+    Silhouette: 0.984 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.984 ± 0.000
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.0%
+
+KMEANS: PCA 10D, k=2
+  Internal Silhouette: 0.977
+  External Metrics:
+    Silhouette: 0.984 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.984 ± 0.000
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.0%
+
+📊 BEST CONFIGURATION FOR KMEANS: PCA 2D, k=2 (Score: 0.998)
+  ANOVA test across candidate combos: F = 557.9167, p-value = 1.06e-11
+  Paired T-test (Best vs. 2nd best): T = 95.7583, p-value = 1.09e-04
+
+HIERARCHICAL: PCA 2D, k=2
+  Internal Silhouette: 0.984
+  External Metrics:
+    Silhouette: 0.998 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.998 ± 0.000
+    Evil Recall: 13.9% ± 0.5%
+    Evil Precision: 89.5% ± 3.3%
+
+HIERARCHICAL: PCA 4D, k=2
+  Internal Silhouette: 0.981
+  External Metrics:
+    Silhouette: 0.987 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.987 ± 0.000
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.0%
+
+HIERARCHICAL: PCA 6D, k=2
+  Internal Silhouette: 0.978
+  External Metrics:
+    Silhouette: 0.985 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.985 ± 0.000
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.0%
+
+HIERARCHICAL: PCA 8D, k=2
+  Internal Silhouette: 0.978
+  External Metrics:
+    Silhouette: 0.984 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.984 ± 0.000
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.0%
+
+HIERARCHICAL: PCA 10D, k=2
+  Internal Silhouette: 0.977
+  External Metrics:
+    Silhouette: 0.984 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.984 ± 0.000
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.0%
+
+📊 BEST CONFIGURATION FOR HIERARCHICAL: PCA 2D, k=2 (Score: 0.998)
+  ANOVA test across candidate combos: F = 557.9167, p-value = 1.06e-11
+  Paired T-test (Best vs. 2nd best): T = 95.7583, p-value = 1.09e-04
+
+DBSCAN: PCA 16D, k=8
+  Internal Silhouette: 0.575
+  External Metrics:
+    Silhouette: 0.584 ± 0.009
+    MI: 0.106 ± 0.001
+    Combined Score: 0.690 ± 0.009
+    Evil Recall: 15.0% ± 0.1%
+    Evil Precision: 96.5% ± 0.4%
+
+DBSCAN: PCA 16D, k=7
+  Internal Silhouette: 0.575
+  External Metrics:
+    Silhouette: 0.536 ± 0.006
+    MI: 0.107 ± 0.001
+    Combined Score: 0.643 ± 0.006
+    Evil Recall: 14.9% ± 0.1%
+    Evil Precision: 96.4% ± 0.3%
+
+DBSCAN: PCA 18D, k=8
+  Internal Silhouette: 0.575
+  External Metrics:
+    Silhouette: 0.581 ± 0.011
+    MI: 0.106 ± 0.001
+    Combined Score: 0.687 ± 0.012
+    Evil Recall: 14.9% ± 0.1%
+    Evil Precision: 96.5% ± 0.4%
+
+DBSCAN: PCA 18D, k=7
+  Internal Silhouette: 0.575
+  External Metrics:
+    Silhouette: 0.538 ± 0.007
+    MI: 0.107 ± 0.001
+    Combined Score: 0.644 ± 0.006
+    Evil Recall: 14.9% ± 0.1%
+    Evil Precision: 96.4% ± 0.3%
+
+DBSCAN: PCA 20D, k=8
+  Internal Silhouette: 0.575
+  External Metrics:
+    Silhouette: 0.581 ± 0.011
+    MI: 0.106 ± 0.001
+    Combined Score: 0.687 ± 0.012
+    Evil Recall: 14.9% ± 0.1%
+    Evil Precision: 96.5% ± 0.4%
+
+📊 BEST CONFIGURATION FOR DBSCAN: PCA 16D, k=8 (Score: 0.690)
+  ANOVA test across candidate combos: F = 14.4040, p-value = 3.72e-04
+  Paired T-test (Best vs. 2nd best): T = 0.7000, p-value = 5.56e-01
+
+GMM: PCA 2D, k=2
+  Internal Silhouette: 0.984
+  External Metrics:
+    Silhouette: 0.998 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.998 ± 0.000
+    Evil Recall: 14.1% ± 0.2%
+    Evil Precision: 91.1% ± 1.2%
+
+GMM: PCA 4D, k=2
+  Internal Silhouette: 0.981
+  External Metrics:
+    Silhouette: 0.986 ± 0.002
+    MI: 0.000 ± 0.000
+    Combined Score: 0.986 ± 0.002
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.3% ± 0.1%
+
+GMM: PCA 6D, k=2
+  Internal Silhouette: 0.978
+  External Metrics:
+    Silhouette: 0.984 ± 0.003
+    MI: 0.000 ± 0.000
+    Combined Score: 0.984 ± 0.003
+    Evil Recall: 12.8% ± 0.0%
+    Evil Precision: 82.3% ± 0.1%
+
+GMM: PCA 8D, k=2
+  Internal Silhouette: 0.978
+  External Metrics:
+    Silhouette: 0.983 ± 0.003
+    MI: 0.000 ± 0.000
+    Combined Score: 0.983 ± 0.003
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.0%
+
+GMM: PCA 10D, k=2
+  Internal Silhouette: 0.977
+  External Metrics:
+    Silhouette: 0.982 ± 0.003
+    MI: 0.000 ± 0.000
+    Combined Score: 0.982 ± 0.003
+    Evil Recall: 12.7% ± 0.0%
+    Evil Precision: 82.2% ± 0.1%
+
+📊 BEST CONFIGURATION FOR GMM: PCA 2D, k=2 (Score: 0.998)
+  ANOVA test across candidate combos: F = 16.2143, p-value = 2.27e-04
+  Paired T-test (Best vs. 2nd best): T = 7.6673, p-value = 1.66e-02
+
+FCM: PCA 2D, k=3
+  Internal Silhouette: 0.556
+  External Metrics:
+    Silhouette: 0.998 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.998 ± 0.000
+    Evil Recall: 12.8% ± 0.0%
+    Evil Precision: 82.6% ± 0.1%
+
+FCM: PCA 2D, k=2
+  Internal Silhouette: 0.541
+  External Metrics:
+    Silhouette: 0.997 ± 0.000
+    MI: 0.000 ± 0.000
+    Combined Score: 0.997 ± 0.000
+    Evil Recall: 13.1% ± 0.2%
+    Evil Precision: 84.5% ± 1.4%
+
+FCM: PCA 2D, k=10
+  Internal Silhouette: 0.534
+  External Metrics:
+    Silhouette: 0.683 ± 0.102
+    MI: 0.062 ± 0.001
+    Combined Score: 0.745 ± 0.103
+    Evil Recall: 14.3% ± 0.3%
+    Evil Precision: 92.2% ± 2.0%
+
+FCM: PCA 2D, k=7
+  Internal Silhouette: 0.526
+  External Metrics:
+    Silhouette: 0.754 ± 0.122
+    MI: 0.058 ± 0.006
+    Combined Score: 0.812 ± 0.128
+    Evil Recall: 14.3% ± 0.6%
+    Evil Precision: 92.4% ± 3.7%
+
+FCM: PCA 2D, k=8
+  Internal Silhouette: 0.517
+  External Metrics:
+    Silhouette: 0.762 ± 0.108
+    MI: 0.061 ± 0.002
+    Combined Score: 0.823 ± 0.110
+    Evil Recall: 14.1% ± 0.7%
+    Evil Precision: 91.2% ± 4.0%
+
+📊 BEST CONFIGURATION FOR FCM: PCA 2D, k=3 (Score: 0.998)
+  ANOVA test across candidate combos: F = 3.4427, p-value = 5.13e-02
+  Paired T-test (Best vs. 2nd best): T = 1.8633, p-value = 2.03e-01
+
+Saved detailed statistical results to intel_tests\statistics_results.txt
+
+Total execution time: 208.87 seconds (3.48 minutes)
+
+Evaluation complete!

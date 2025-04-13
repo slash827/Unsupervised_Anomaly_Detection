@@ -1,0 +1,294 @@
+Loading data from C:\Users\gilad\Documents\GitHub\Unsupervised_Anomaly_Detection\data...
+Original dataset shape: (1141078, 16)
+Columns in the dataset: ['timestamp', 'processId', 'threadId', 'parentProcessId', 'userId', 'mountNamespace', 'processName', 'hostName', 'eventId', 'eventName', 'stackAddresses', 'argsNum', 'returnValue', 'args', 'sus', 'evil']
+
+Class distribution:
+Benign samples (evil=0, sus=0): 967564 (84.79%)
+Suspicious samples (evil=0, sus=1): 15082 (1.32%)
+Malicious samples (evil=1): 158432 (13.88%)
+
+Creating binary features based on paper recommendations...
+
+Feature value ranges before preprocessing:
+isSystemProcess: Min=0, Max=1, Unique values=2
+isSystemParentProcess: Min=0, Max=1, Unique values=2
+isSystemUser: Min=0, Max=1, Unique values=2
+isDefaultMountNamespace: Min=0, Max=1, Unique values=2
+eventId: Min=2, Max=1010, Unique values=46
+argsNum: Min=0, Max=5, Unique values=6
+returnValueCat: Min=-1, Max=1, Unique values=3
+Processed dataset shape: (1141078, 9)
+
+Added 'sus' to features since we're predicting 'evil'
+
+Sampling 100000 records from the full dataset of 1141078 records...
+
+Training set size: 69999
+Testing set size: 30000
+
+Training a decision tree with max_depth=5...
+
+Accuracy: 0.9989
+
+Classification Report:
+               precision    recall  f1-score   support
+
+Not Malicious       1.00      1.00      1.00     25835
+    Malicious       1.00      0.99      1.00      4165
+
+     accuracy                           1.00     30000
+    macro avg       1.00      1.00      1.00     30000
+ weighted avg       1.00      1.00      1.00     30000
+
+
+Confusion Matrix:
+                      Predicted Not Malicious  Predicted Malicious
+Actual Not Malicious                    25830                    5
+Actual Malicious                           28                 4137
+
+Feature Importance:
+                   Feature  Importance
+2             isSystemUser    0.961065
+1    isSystemParentProcess    0.037131
+7                      sus    0.001119
+4                  eventId    0.000515
+6           returnValueCat    0.000138
+5                  argsNum    0.000032
+0          isSystemProcess    0.000000
+3  isDefaultMountNamespace    0.000000
+
+Decision tree visualization saved to decision_tree.png
+
+Text Representation of the Decision Tree:
+|--- isSystemUser <= -1.02
+|   |--- isSystemParentProcess <= 1.43
+|   |   |--- eventId <= -0.46
+|   |   |   |--- eventId <= -0.65
+|   |   |   |   |--- eventId <= -0.66
+|   |   |   |   |   |--- weights: [5.00, 250.00] class: 1
+|   |   |   |   |--- eventId >  -0.66
+|   |   |   |   |   |--- weights: [3.00, 76.00] class: 1
+|   |   |   |--- eventId >  -0.65
+|   |   |   |   |--- weights: [0.00, 9066.00] class: 1
+|   |   |--- eventId >  -0.46
+|   |   |   |--- returnValueCat <= -0.93
+|   |   |   |   |--- eventId <= 0.06
+|   |   |   |   |   |--- weights: [4.00, 8.00] class: 1
+|   |   |   |   |--- eventId >  0.06
+|   |   |   |   |   |--- weights: [0.00, 1.00] class: 1
+|   |   |   |--- returnValueCat >  -0.93
+|   |   |   |   |--- eventId <= -0.32
+|   |   |   |   |   |--- weights: [1.00, 0.00] class: 0
+|   |   |   |   |--- eventId >  -0.32
+|   |   |   |   |   |--- weights: [8.00, 239.00] class: 1
+|   |--- isSystemParentProcess >  1.43
+|   |   |--- returnValueCat <= -0.93
+|   |   |   |--- eventId <= -0.65
+|   |   |   |   |--- weights: [45.00, 1.00] class: 0
+|   |   |   |--- eventId >  -0.65
+|   |   |   |   |--- weights: [53.00, 0.00] class: 0
+|   |   |--- returnValueCat >  -0.93
+|   |   |   |--- weights: [222.00, 0.00] class: 0
+|--- isSystemUser >  -1.02
+|   |--- sus <= 0.50
+|   |   |--- weights: [59368.00, 0.00] class: 0
+|   |--- sus >  0.50
+|   |   |--- eventId <= -0.00
+|   |   |   |--- eventId <= -0.66
+|   |   |   |   |--- isSystemParentProcess <= 1.43
+|   |   |   |   |   |--- weights: [112.00, 22.00] class: 0
+|   |   |   |   |--- isSystemParentProcess >  1.43
+|   |   |   |   |   |--- weights: [1.00, 0.00] class: 0
+|   |   |   |--- eventId >  -0.66
+|   |   |   |   |--- eventId <= -0.66
+|   |   |   |   |   |--- weights: [98.00, 0.00] class: 0
+|   |   |   |   |--- eventId >  -0.66
+|   |   |   |   |   |--- weights: [177.00, 18.00] class: 0
+|   |   |--- eventId >  -0.00
+|   |   |   |--- argsNum <= -1.74
+|   |   |   |   |--- isSystemParentProcess <= 1.43
+|   |   |   |   |   |--- weights: [2.00, 2.00] class: 0
+|   |   |   |   |--- isSystemParentProcess >  1.43
+|   |   |   |   |   |--- weights: [1.00, 0.00] class: 0
+|   |   |   |--- argsNum >  -1.74
+|   |   |   |   |--- returnValueCat <= 0.66
+|   |   |   |   |   |--- weights: [91.00, 14.00] class: 0
+|   |   |   |   |--- returnValueCat >  0.66
+|   |   |   |   |   |--- weights: [89.00, 22.00] class: 0
+
+
+=== Decision Paths to Leaf Nodes ===
+
+Path 1 (Leaf Node 5) - Majority: Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess <= 1.43
+  ├─ eventId <= -0.46
+  ├─ eventId <= -0.65
+  └─ eventId <= -0.66
+  Class Distribution: Not Malicious: 2.0%, Malicious: 98.0%
+
+Path 2 (Leaf Node 6) - Majority: Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess <= 1.43
+  ├─ eventId <= -0.46
+  ├─ eventId <= -0.65
+  └─ eventId > -0.66
+  Class Distribution: Not Malicious: 3.8%, Malicious: 96.2%
+
+Path 3 (Leaf Node 7) - Majority: Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess <= 1.43
+  ├─ eventId <= -0.46
+  └─ eventId > -0.65
+  Class Distribution: Not Malicious: 0.0%, Malicious: 100.0%
+
+Path 4 (Leaf Node 10) - Majority: Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess <= 1.43
+  ├─ eventId > -0.46
+  ├─ returnValueCat <= -0.93
+  └─ eventId <= 0.06
+  Class Distribution: Not Malicious: 33.3%, Malicious: 66.7%
+
+Path 5 (Leaf Node 11) - Majority: Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess <= 1.43
+  ├─ eventId > -0.46
+  ├─ returnValueCat <= -0.93
+  └─ eventId > 0.06
+  Class Distribution: Not Malicious: 0.0%, Malicious: 100.0%
+
+Path 6 (Leaf Node 13) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess <= 1.43
+  ├─ eventId > -0.46
+  ├─ returnValueCat > -0.93
+  └─ eventId <= -0.32
+  Class Distribution: Not Malicious: 100.0%, Malicious: 0.0%
+
+Path 7 (Leaf Node 14) - Majority: Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess <= 1.43
+  ├─ eventId > -0.46
+  ├─ returnValueCat > -0.93
+  └─ eventId > -0.32
+  Class Distribution: Not Malicious: 3.2%, Malicious: 96.8%
+
+Path 8 (Leaf Node 17) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess > 1.43
+  ├─ returnValueCat <= -0.93
+  └─ eventId <= -0.65
+  Class Distribution: Not Malicious: 97.8%, Malicious: 2.2%
+
+Path 9 (Leaf Node 18) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess > 1.43
+  ├─ returnValueCat <= -0.93
+  └─ eventId > -0.65
+  Class Distribution: Not Malicious: 100.0%, Malicious: 0.0%
+
+Path 10 (Leaf Node 19) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser <= -1.02
+  ├─ isSystemParentProcess > 1.43
+  └─ returnValueCat > -0.93
+  Class Distribution: Not Malicious: 100.0%, Malicious: 0.0%
+
+Path 11 (Leaf Node 21) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser > -1.02
+  └─ sus <= 0.50
+  Class Distribution: Not Malicious: 100.0%, Malicious: 0.0%
+
+Path 12 (Leaf Node 25) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser > -1.02
+  ├─ sus > 0.50
+  ├─ eventId <= -0.00
+  ├─ eventId <= -0.66
+  └─ isSystemParentProcess <= 1.43
+  Class Distribution: Not Malicious: 83.6%, Malicious: 16.4%
+
+Path 13 (Leaf Node 26) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser > -1.02
+  ├─ sus > 0.50
+  ├─ eventId <= -0.00
+  ├─ eventId <= -0.66
+  └─ isSystemParentProcess > 1.43
+  Class Distribution: Not Malicious: 100.0%, Malicious: 0.0%
+
+Path 14 (Leaf Node 28) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser > -1.02
+  ├─ sus > 0.50
+  ├─ eventId <= -0.00
+  ├─ eventId > -0.66
+  └─ eventId <= -0.66
+  Class Distribution: Not Malicious: 100.0%, Malicious: 0.0%
+
+Path 15 (Leaf Node 29) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser > -1.02
+  ├─ sus > 0.50
+  ├─ eventId <= -0.00
+  ├─ eventId > -0.66
+  └─ eventId > -0.66
+  Class Distribution: Not Malicious: 90.8%, Malicious: 9.2%
+
+Path 16 (Leaf Node 32) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser > -1.02
+  ├─ sus > 0.50
+  ├─ eventId > -0.00
+  ├─ argsNum <= -1.74
+  └─ isSystemParentProcess <= 1.43
+  Class Distribution: Not Malicious: 50.0%, Malicious: 50.0%
+
+Path 17 (Leaf Node 33) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser > -1.02
+  ├─ sus > 0.50
+  ├─ eventId > -0.00
+  ├─ argsNum <= -1.74
+  └─ isSystemParentProcess > 1.43
+  Class Distribution: Not Malicious: 100.0%, Malicious: 0.0%
+
+Path 18 (Leaf Node 35) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser > -1.02
+  ├─ sus > 0.50
+  ├─ eventId > -0.00
+  ├─ argsNum > -1.74
+  └─ returnValueCat <= 0.66
+  Class Distribution: Not Malicious: 86.7%, Malicious: 13.3%
+
+Path 19 (Leaf Node 36) - Majority: Not Malicious, Samples: 1:
+  ├─ isSystemUser > -1.02
+  ├─ sus > 0.50
+  ├─ eventId > -0.00
+  ├─ argsNum > -1.74
+  └─ returnValueCat > 0.66
+  Class Distribution: Not Malicious: 80.2%, Malicious: 19.8%
+
+=== Feature Threshold Analysis ===
+
+Feature: isSystemUser
+  Used in 1 decision nodes
+  Threshold values: [-1.02]
+
+Feature: isSystemParentProcess
+  Used in 3 decision nodes
+  Threshold values: [1.43]
+
+Feature: eventId
+  Used in 9 decision nodes
+  Threshold values: [-0.66, -0.65, -0.46, -0.32, -0.0, 0.06]
+
+Feature: returnValueCat
+  Used in 3 decision nodes
+  Threshold values: [-0.93, 0.66]
+
+Feature: sus
+  Used in 1 decision nodes
+  Threshold values: [0.5]
+  This appears to be used as a binary split (threshold ≈ 0.5)
+
+Feature: argsNum
+  Used in 1 decision nodes
+  Threshold values: [-1.74]
+
+Confusion matrix visualization saved to confusion_matrix.png
+Total execution time: 5.65 seconds

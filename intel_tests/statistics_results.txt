@@ -1,0 +1,184 @@
+External Evaluation Statistical Summary (Score = Silhouette + MI)
+
+============================================================
+
+
+Algorithm: KMEANS
+
+Candidate Parameter Combos (based on internal evaluation ranking):
+
+  PCA 2D, k=2 (Internal Silhouette: 0.981)
+    External -> Silhouette: 0.993 ± 0.001, MI: 0.000 ± 0.000
+                 Score: 0.993 ± 0.001
+                 % Evil Found: 13.2 ± 0.6, % Points Actually Evil: 84.6 ± 2.7
+
+  PCA 4D, k=2 (Internal Silhouette: 0.972)
+    External -> Silhouette: 0.985 ± 0.004, MI: 0.000 ± 0.000
+                 Score: 0.985 ± 0.004
+                 % Evil Found: 12.8 ± 0.1, % Points Actually Evil: 82.2 ± 0.1
+
+  PCA 6D, k=2 (Internal Silhouette: 0.967)
+    External -> Silhouette: 0.981 ± 0.003, MI: 0.000 ± 0.000
+                 Score: 0.981 ± 0.003
+                 % Evil Found: 12.6 ± 0.0, % Points Actually Evil: 82.0 ± 0.0
+
+  PCA 8D, k=2 (Internal Silhouette: 0.963)
+    External -> Silhouette: 0.978 ± 0.003, MI: 0.000 ± 0.000
+                 Score: 0.978 ± 0.003
+                 % Evil Found: 12.6 ± 0.0, % Points Actually Evil: 82.0 ± 0.0
+
+  PCA 10D, k=2 (Internal Silhouette: 0.961)
+    External -> Silhouette: 0.976 ± 0.004, MI: 0.000 ± 0.000
+                 Score: 0.976 ± 0.004
+                 % Evil Found: 12.6 ± 0.0, % Points Actually Evil: 82.0 ± 0.0
+
+Best Candidate for kmeans: PCA 2D, k=2 (Score: 0.993)
+
+   ANOVA test across candidate combos: F = 8.9267, p-value = 2.46e-03
+
+   Paired T-test (Best vs. 2nd best): T = 5.2902, p-value = 3.39e-02
+
+
+Algorithm: HIERARCHICAL
+
+Candidate Parameter Combos (based on internal evaluation ranking):
+
+  PCA 2D, k=2 (Internal Silhouette: 0.981)
+    External -> Silhouette: 0.993 ± 0.001, MI: 0.000 ± 0.000
+                 Score: 0.993 ± 0.001
+                 % Evil Found: 13.2 ± 0.6, % Points Actually Evil: 84.6 ± 2.7
+
+  PCA 4D, k=2 (Internal Silhouette: 0.972)
+    External -> Silhouette: 0.985 ± 0.004, MI: 0.000 ± 0.000
+                 Score: 0.985 ± 0.004
+                 % Evil Found: 12.8 ± 0.1, % Points Actually Evil: 82.2 ± 0.1
+
+  PCA 6D, k=2 (Internal Silhouette: 0.967)
+    External -> Silhouette: 0.981 ± 0.003, MI: 0.000 ± 0.000
+                 Score: 0.981 ± 0.003
+                 % Evil Found: 12.6 ± 0.0, % Points Actually Evil: 82.0 ± 0.0
+
+  PCA 8D, k=2 (Internal Silhouette: 0.963)
+    External -> Silhouette: 0.978 ± 0.003, MI: 0.000 ± 0.000
+                 Score: 0.978 ± 0.003
+                 % Evil Found: 12.6 ± 0.0, % Points Actually Evil: 82.0 ± 0.0
+
+  PCA 10D, k=2 (Internal Silhouette: 0.961)
+    External -> Silhouette: 0.976 ± 0.004, MI: 0.000 ± 0.000
+                 Score: 0.976 ± 0.004
+                 % Evil Found: 12.6 ± 0.0, % Points Actually Evil: 82.0 ± 0.0
+
+Best Candidate for hierarchical: PCA 2D, k=2 (Score: 0.993)
+
+   ANOVA test across candidate combos: F = 8.9267, p-value = 2.46e-03
+
+   Paired T-test (Best vs. 2nd best): T = 5.2902, p-value = 3.39e-02
+
+
+Algorithm: DBSCAN
+
+Candidate Parameter Combos (based on internal evaluation ranking):
+
+  PCA 4D, k=8 (Internal Silhouette: 0.840)
+    External -> Silhouette: 0.842 ± 0.035, MI: 0.052 ± 0.032
+                 Score: 0.895 ± 0.057
+                 % Evil Found: 13.2 ± 0.6, % Points Actually Evil: 85.6 ± 3.4
+
+  PCA 4D, k=9 (Internal Silhouette: 0.839)
+    External -> Silhouette: 0.854 ± 0.027, MI: 0.052 ± 0.033
+                 Score: 0.906 ± 0.058
+                 % Evil Found: 13.2 ± 0.3, % Points Actually Evil: 85.0 ± 2.3
+
+  PCA 4D, k=7 (Internal Silhouette: 0.838)
+    External -> Silhouette: 0.856 ± 0.033, MI: 0.072 ± 0.007
+                 Score: 0.928 ± 0.038
+                 % Evil Found: 13.7 ± 0.4, % Points Actually Evil: 87.9 ± 2.3
+
+  PCA 4D, k=10 (Internal Silhouette: 0.838)
+    External -> Silhouette: 0.828 ± 0.060, MI: 0.050 ± 0.031
+                 Score: 0.878 ± 0.090
+                 % Evil Found: 13.2 ± 0.6, % Points Actually Evil: 85.2 ± 3.9
+
+  PCA 4D, k=6 (Internal Silhouette: 0.820)
+    External -> Silhouette: 0.850 ± 0.029, MI: 0.075 ± 0.006
+                 Score: 0.925 ± 0.034
+                 % Evil Found: 13.6 ± 0.1, % Points Actually Evil: 88.4 ± 0.8
+
+Best Candidate for dbscan: PCA 4D, k=7 (Score: 0.928)
+
+   ANOVA test across candidate combos: F = 0.2534, p-value = 9.01e-01
+
+   Paired T-test (Best vs. 2nd best): T = 0.7626, p-value = 5.25e-01
+
+
+Algorithm: GMM
+
+Candidate Parameter Combos (based on internal evaluation ranking):
+
+  PCA 14D, k=2 (Internal Silhouette: 0.950)
+    External -> Silhouette: 0.962 ± 0.014, MI: 0.000 ± 0.000
+                 Score: 0.962 ± 0.014
+                 % Evil Found: 12.6 ± 0.0, % Points Actually Evil: 82.0 ± 0.0
+
+  PCA 2D, k=3 (Internal Silhouette: 0.808)
+    External -> Silhouette: 0.990 ± 0.001, MI: 0.000 ± 0.000
+                 Score: 0.990 ± 0.001
+                 % Evil Found: 12.7 ± 0.1, % Points Actually Evil: 82.4 ± 0.6
+
+  PCA 2D, k=2 (Internal Silhouette: 0.805)
+    External -> Silhouette: 0.991 ± 0.003, MI: 0.000 ± 0.000
+                 Score: 0.991 ± 0.003
+                 % Evil Found: 12.8 ± 0.2, % Points Actually Evil: 83.0 ± 1.3
+
+  PCA 4D, k=4 (Internal Silhouette: 0.802)
+    External -> Silhouette: 0.972 ± 0.002, MI: 0.000 ± 0.000
+                 Score: 0.972 ± 0.002
+                 % Evil Found: 12.8 ± 0.1, % Points Actually Evil: 82.2 ± 0.1
+
+  PCA 4D, k=7 (Internal Silhouette: 0.802)
+    External -> Silhouette: 0.819 ± 0.025, MI: 0.065 ± 0.001
+                 Score: 0.884 ± 0.026
+                 % Evil Found: 12.6 ± 0.0, % Points Actually Evil: 82.0 ± 0.0
+
+Best Candidate for gmm: PCA 2D, k=2 (Score: 0.991)
+
+   ANOVA test across candidate combos: F = 23.0133, p-value = 4.98e-05
+
+   Paired T-test (Best vs. 2nd best): T = 0.6317, p-value = 5.92e-01
+
+
+Algorithm: FCM
+
+Candidate Parameter Combos (based on internal evaluation ranking):
+
+  PCA 2D, k=2 (Internal Silhouette: 0.856)
+    External -> Silhouette: 0.990 ± 0.004, MI: 0.000 ± 0.000
+                 Score: 0.990 ± 0.004
+                 % Evil Found: 12.7 ± 0.0, % Points Actually Evil: 82.3 ± 0.3
+
+  PCA 4D, k=2 (Internal Silhouette: 0.796)
+    External -> Silhouette: 0.872 ± 0.083, MI: 0.039 ± 0.028
+                 Score: 0.911 ± 0.056
+                 % Evil Found: 12.7 ± 0.0, % Points Actually Evil: 82.1 ± 0.1
+
+  PCA 4D, k=4 (Internal Silhouette: 0.787)
+    External -> Silhouette: 0.621 ± 0.146, MI: 0.055 ± 0.009
+                 Score: 0.677 ± 0.137
+                 % Evil Found: 14.5 ± 1.1, % Points Actually Evil: 92.2 ± 7.1
+
+  PCA 6D, k=2 (Internal Silhouette: 0.752)
+    External -> Silhouette: 0.796 ± 0.003, MI: 0.058 ± 0.005
+                 Score: 0.854 ± 0.005
+                 % Evil Found: 12.7 ± 0.0, % Points Actually Evil: 82.0 ± 0.1
+
+  PCA 20D, k=2 (Internal Silhouette: 0.739)
+    External -> Silhouette: 0.602 ± 0.232, MI: 0.045 ± 0.018
+                 Score: 0.647 ± 0.249
+                 % Evil Found: 12.6 ± 0.0, % Points Actually Evil: 82.0 ± 0.0
+
+Best Candidate for fcm: PCA 2D, k=2 (Score: 0.990)
+
+   ANOVA test across candidate combos: F = 2.6461, p-value = 9.66e-02
+
+   Paired T-test (Best vs. 2nd best): T = 2.1112, p-value = 1.69e-01
+

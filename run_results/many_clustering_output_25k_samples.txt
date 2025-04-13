@@ -1,0 +1,70 @@
+--- Best DBSCAN Configurations ---
+Best by combined score: PCA 6.0D, eps=0.2, min_samples=20.0
+  Score: 1.296 (Silhouette=0.929, MI=0.366)
+Best by MI score: PCA 4.0D, eps=0.5, min_samples=5.0
+  MI: 0.385 (Silhouette=0.674)
+Best by precision: PCA 3.0D, eps=0.2, min_samples=5.0
+  Precision: 100.0% (Recall=92.2%)
+
+=== STEP 3: Final Evaluation ===
+Best DBSCAN configuration: PCA 6D, eps=0.2, min_samples=20
+Original distribution: Class 0: 982646 (86.12%), Class 1: 158432 (13.88%), 
+Sampled distribution: Class 0: 8612 (86.12%), Class 1: 1388 (13.88%), 
+
+Classification Report (using best evil cluster):
+              precision    recall  f1-score   support
+
+           0       0.99      1.00      0.99      8612
+           1       1.00      0.91      0.95      1388
+
+    accuracy                           0.99     10000
+   macro avg       0.99      0.95      0.97     10000
+weighted avg       0.99      0.99      0.99     10000
+
+
+Detailed metrics:
+Silhouette Score: 0.928
+Mutual Information: 0.369
+Evil Precision: 100.0%
+Evil Recall: 90.9%
+
+Cluster statistics:
+Noise: 733 points, 126 evil (17.2%)
+Cluster 0: 1305 points, 0 evil (0.0%)
+Cluster 1: 669 points, 0 evil (0.0%)
+Cluster 2: 101 points, 0 evil (0.0%)
+Cluster 3: 231 points, 0 evil (0.0%)
+Cluster 4: 1262 points, 1262 evil (100.0%)
+Cluster 5: 60 points, 0 evil (0.0%)
+Cluster 6: 849 points, 0 evil (0.0%)
+Cluster 7: 134 points, 0 evil (0.0%)
+Cluster 8: 1274 points, 0 evil (0.0%)
+Cluster 9: 1321 points, 0 evil (0.0%)
+Cluster 10: 332 points, 0 evil (0.0%)
+Cluster 11: 673 points, 0 evil (0.0%)
+Cluster 12: 103 points, 0 evil (0.0%)
+Cluster 13: 37 points, 0 evil (0.0%)
+Cluster 14: 34 points, 0 evil (0.0%)
+Cluster 15: 104 points, 0 evil (0.0%)
+Cluster 16: 35 points, 0 evil (0.0%)
+Cluster 17: 56 points, 0 evil (0.0%)
+Cluster 18: 133 points, 0 evil (0.0%)
+Cluster 19: 52 points, 0 evil (0.0%)
+Cluster 20: 33 points, 0 evil (0.0%)
+Cluster 21: 25 points, 0 evil (0.0%)
+Cluster 22: 42 points, 0 evil (0.0%)
+Cluster 23: 48 points, 0 evil (0.0%)
+Cluster 24: 20 points, 0 evil (0.0%)
+Cluster 25: 27 points, 0 evil (0.0%)
+Cluster 26: 27 points, 0 evil (0.0%)
+Cluster 27: 43 points, 0 evil (0.0%)
+Cluster 28: 69 points, 0 evil (0.0%)
+Cluster 29: 23 points, 0 evil (0.0%)
+Cluster 30: 33 points, 0 evil (0.0%)
+Cluster 31: 40 points, 0 evil (0.0%)
+Cluster 32: 24 points, 0 evil (0.0%)
+Cluster 33: 25 points, 0 evil (0.0%)
+Cluster 34: 23 points, 0 evil (0.0%)
+
+Analysis complete with 25000 samples!
+Total processing time: 10637.06 seconds

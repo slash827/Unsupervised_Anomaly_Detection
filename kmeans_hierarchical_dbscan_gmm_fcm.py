@@ -23,8 +23,8 @@ RESULTS_DIR = "final_tests"
 os.makedirs(RESULTS_DIR, exist_ok=True)
 HEATMAP_DIR = RESULTS_DIR  # Heatmaps will be saved here as well
 
-REPEATS = 5
-SAMPLE_SIZE = 10000
+REPEATS = 1
+SAMPLE_SIZE = 50000
 dims_range = list(range(2, df.shape[1], 2))  # PCA dimensions
 cluster_range = list(range(2, 11))  # Cluster counts
 algorithms = ['kmeans', 'hierarchical', 'dbscan', 'gmm', 'fcm']

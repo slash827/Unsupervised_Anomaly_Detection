@@ -1,0 +1,83 @@
+Loading data from preprocessed/prepared_data_cluster.csv...
+Sampling data for visualization...
+Sampled 10000 points: 1388 evil, 8612 benign
+Applying PCA...
+Explained variance ratio: [0.18278742 0.1470039  0.09463882 0.0819778  0.07217662 0.06139898]
+Total explained variance: 0.64
+Running DBSCAN...
+DBSCAN found 37 clusters and 865 noise points
+
+--- Clusters sorted by evil percentage ---
+Cluster 5: 1277 points, 1277 evil (100.0%)
+Noise: 865 points, 111 evil (12.8%)
+Cluster 0: 106 points, 0 evil (0.0%)
+Cluster 1: 596 points, 0 evil (0.0%)
+Cluster 2: 1259 points, 0 evil (0.0%)
+Cluster 3: 1245 points, 0 evil (0.0%)
+Cluster 4: 24 points, 0 evil (0.0%)
+Cluster 6: 924 points, 0 evil (0.0%)
+Cluster 7: 1289 points, 0 evil (0.0%)
+Cluster 8: 384 points, 0 evil (0.0%)
+Cluster 9: 49 points, 0 evil (0.0%)
+Cluster 10: 35 points, 0 evil (0.0%)
+Cluster 11: 42 points, 0 evil (0.0%)
+Cluster 12: 28 points, 0 evil (0.0%)
+Cluster 13: 228 points, 0 evil (0.0%)
+Cluster 14: 149 points, 0 evil (0.0%)
+Cluster 15: 27 points, 0 evil (0.0%)
+Cluster 16: 27 points, 0 evil (0.0%)
+Cluster 17: 721 points, 0 evil (0.0%)
+Cluster 18: 42 points, 0 evil (0.0%)
+Cluster 19: 37 points, 0 evil (0.0%)
+Cluster 20: 36 points, 0 evil (0.0%)
+Cluster 21: 32 points, 0 evil (0.0%)
+Cluster 22: 30 points, 0 evil (0.0%)
+Cluster 23: 122 points, 0 evil (0.0%)
+Cluster 24: 116 points, 0 evil (0.0%)
+Cluster 25: 24 points, 0 evil (0.0%)
+Cluster 26: 25 points, 0 evil (0.0%)
+Cluster 27: 26 points, 0 evil (0.0%)
+Cluster 28: 24 points, 0 evil (0.0%)
+Cluster 29: 54 points, 0 evil (0.0%)
+Cluster 30: 21 points, 0 evil (0.0%)
+Cluster 31: 29 points, 0 evil (0.0%)
+Cluster 32: 20 points, 0 evil (0.0%)
+Cluster 33: 20 points, 0 evil (0.0%)
+Cluster 34: 25 points, 0 evil (0.0%)
+Cluster 35: 20 points, 0 evil (0.0%)
+Cluster 36: 22 points, 0 evil (0.0%)
+
+Creating visualizations...
+Visualization saved to visualization_results\dbscan_clusters_pca.png
+Visualization saved to visualization_results\dbscan_clusters_tsne.png
+Visualization saved to visualization_results\evil_clusters_highlighted.png
+
+Investigating top evil cluster...
+
+==== INVESTIGATION OF CLUSTER 5 ====
+Size: 1277 points
+Evil points: 1277 (100.0%)
+
+--- Feature Distributions ---
+Top contributing features to this cluster (via PCA reconstruction):
+  1. processName_MCA_0: 1.506
+  2. eventId_MCA_3: 0.551
+  3. eventId_MCA_0: 0.246
+  4. eventId_MCA_2: 0.219
+  5. eventId_MCA_4: 0.219
+  6. eventId_MCA_1: 0.134
+
+--- Cluster Visualization ---
+
+--- Comparison with Other Clusters ---
+Distance to other cluster centers:
+  Cluster 10: 4.143
+  Cluster 20: 4.221
+  Cluster 24: 4.298
+  Cluster 29: 4.366
+  Cluster 30: 4.523
+
+Cluster investigation complete. Results saved to visualization_results\cluster_5_analysis.
+
+Visualization complete! Results saved to visualization_results.
+Total processing time: 150.74 seconds
