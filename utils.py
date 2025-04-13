@@ -7,7 +7,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-# Function to load and preprocess the BETH dataset
 def load_and_preprocess_beth_data(csv_files, file_path):
     """
     Load the BETH kernel process logs and preprocess them for analysis.
@@ -74,3 +73,107 @@ def load_and_preprocess_beth_data(csv_files, file_path):
     
     print(f"Processed dataset shape: {df_scaled.shape}")
     return df_scaled, features_for_analysis
+
+
+def properly_balanced_stratified_sample(X, y, n_samples, random_state=None):
+    """
+    Improved stratified sampling that ensures proper representation of classes.
+    
+    Args:
+        X: Feature matrix
+        y: Target labels
+        n_samples: Number of samples to return
+        random_state: Random seed
+        
+    Returns:
+        X_sampled, y_sampled, indices
+    """
+    if random_state is not None:
+        np.random.seed(random_state)
+    
+    # Calculate class distributions
+    unique_classes = np.unique(y)
+    class_counts = {cls: np.sum(y == cls) for cls in unique_classes}
+    total_samples = len(y)
+    
+    # Log original class distribution
+    print(f"Original distribution: ", end="")
+    for cls in unique_classes:
+        print(f"Class {cls}: {class_counts[cls]} ({class_counts[cls]/total_samples*100:.2f}%), ", end="")
+    print()
+    
+    # Option 1: Maintain original class distribution (true stratified sampling)
+    samples_per_class = {
+        cls: int(np.round((count / total_samples) * n_samples))
+        for cls, count in class_counts.items()
+    }
+    
+    # Ensure we get exactly n_samples (adjust largest class if needed)
+    total_allocated = sum(samples_per_class.values())
+    if total_allocated != n_samples:
+        largest_class = max(class_counts, key=class_counts.get)
+        samples_per_class[largest_class] += (n_samples - total_allocated)
+    
+    # Option 2: Balance classes more evenly (if very imbalanced)
+    if max(samples_per_class.values()) / min(samples_per_class.values()) > 10:
+        print("Highly imbalanced classes detected - applying more balanced sampling")
+        
+        # Choose a more balanced allocation, ensuring minimum representation
+        min_per_class = max(5, int(n_samples * 0.1))  # At least 5 samples or 10% per class
+        remaining = n_samples - (min_per_class * len(unique_classes))
+        
+        if remaining > 0:
+            # Allocate remaining proportionally to original distribution
+            total_orig = sum(class_counts.values())
+            extra_per_class = {
+                cls: int(np.floor((count / total_orig) * remaining))
+                for cls, count in class_counts.items()
+            }
+            # Distribute any remainder
+            remainder = remaining - sum(extra_per_class.values())
+            for cls in sorted(class_counts, key=class_counts.get, reverse=True):
+                if remainder <= 0:
+                    break
+                extra_per_class[cls] += 1
+                remainder -= 1
+                
+            # Final allocation
+            samples_per_class = {
+                cls: min_per_class + extra_per_class[cls]
+                for cls in unique_classes
+            }
+    
+    # Sample indices for each class
+    sampled_indices = []
+    for cls, n_samples_cls in samples_per_class.items():
+        cls_indices = np.where(y == cls)[0]
+        
+        # Handle case where requested samples exceeds available
+        if n_samples_cls > len(cls_indices):
+            print(f"Warning: Requested {n_samples_cls} samples for class {cls} "
+                  f"but only {len(cls_indices)} available.")
+            n_samples_cls = len(cls_indices)
+            
+        # Sample with or without replacement as needed
+        if n_samples_cls <= len(cls_indices):
+            # Without replacement
+            cls_sampled = np.random.choice(cls_indices, size=n_samples_cls, replace=False)
+        else:
+            # With replacement (should not happen with fixed code above)
+            cls_sampled = np.random.choice(cls_indices, size=n_samples_cls, replace=True)
+            
+        sampled_indices.extend(cls_sampled)
+    
+    # Shuffle the sampled indices
+    np.random.shuffle(sampled_indices)
+    sampled_indices = np.array(sampled_indices)
+    
+    # Log resulting distribution
+    y_sampled = y[sampled_indices]
+    sampled_counts = {cls: np.sum(y_sampled == cls) for cls in unique_classes}
+    print(f"Sampled distribution: ", end="")
+    for cls in unique_classes:
+        print(f"Class {cls}: {sampled_counts[cls]} ({sampled_counts[cls]/len(y_sampled)*100:.2f}%), ", end="")
+    print()
+    
+    return X[sampled_indices], y[sampled_indices], sampled_indices

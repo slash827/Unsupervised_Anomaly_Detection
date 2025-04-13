@@ -5,15 +5,14 @@ from datetime import datetime
 
 import pandas as pd
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder, StandardScaler
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.manifold import TSNE
-from sklearn.model_selection import StratifiedShuffleSplit
-from umap import UMAP
 from sklearn.metrics import silhouette_score
-from scipy.stats import entropy
+from sklearn.preprocessing import StandardScaler
+from sklearn.manifold import TSNE
+from umap import UMAP
+
+from utils import load_and_preprocess_beth_data, properly_balanced_stratified_sample
 
 
 class DataProcessor:
@@ -27,87 +26,35 @@ class DataProcessor:
         self.X_sample = None
         self.y_sample = None
         self.X_scaled = None
-        self.original_class_distribution = None
-        self.sampled_class_distribution = None
+        self.features_for_analysis = None
+        self.original_data = None
+        self.sample_indices = None
     
     def load_and_preprocess(self):
-        """Load, combine and preprocess datasets from CSV files."""
+        """Load, preprocess and prepare data using utils.py functions."""
         print("\n" + "="*80)
         print(f"DATA LOADING AND PREPROCESSING - Started at {datetime.now().strftime('%H:%M:%S')}")
         print("="*80)
         
         # Load and combine datasets
-        csv_files = glob.glob(f"data{os.sep}*[!dns].csv")
+        csv_files = glob.glob(f"data{os.sep}*data.csv")
         print(f"Found {len(csv_files)} CSV files: {csv_files}")
         
-        data = pd.concat([pd.read_csv(f) for f in csv_files], ignore_index=True)
-
-        # Display initial information
-        print(f"\nDataset shape: {data.shape} - {data.shape[0]} rows × {data.shape[1]} columns")
-        print("\nFirst few rows:")
-        print(data.head())
+        df_scaled, self.features_for_analysis = load_and_preprocess_beth_data(csv_files, "data/")
         
-        # Check for missing values
-        missing_values = data.isnull().sum()
-        missing_pct = (missing_values / len(data)) * 100
-        missing_info = pd.DataFrame({
-            'Missing Values': missing_values,
-            'Percentage': missing_pct
-        })
-        print("\nMissing values:")
-        print(missing_info[missing_info['Missing Values'] > 0])
+        # Extract features and target
+        self.X = df_scaled.drop(['sus', 'evil'], axis=1)
+        self.y = df_scaled['evil']
+        self.original_data = df_scaled
         
-        if missing_info['Missing Values'].sum() == 0:
-            print("No missing values found in the dataset.")
-
-        # Separate numeric and categorical columns
-        self.numeric_columns = data.select_dtypes(include=['int64', 'float64']).columns
-        self.categorical_columns = data.select_dtypes(include=['object']).columns
-
-        print(f"\nNumeric columns ({len(self.numeric_columns)}): {self.numeric_columns.tolist()}")
-        print(f"Categorical columns ({len(self.categorical_columns)}): {self.categorical_columns.tolist()}")
-
-        # Handle missing values
-        if len(self.numeric_columns) > 0:
-            data[self.numeric_columns] = data[self.numeric_columns].fillna(data[self.numeric_columns].median())
-            print("\nNumeric missing values filled with column medians")
-        if len(self.categorical_columns) > 0:
-            data[self.categorical_columns] = data[self.categorical_columns].fillna(data[self.categorical_columns].mode().iloc[0])
-            print("Categorical missing values filled with column modes")
-
-        # Display data type information
-        print("\nData types:")
-        print(data.dtypes.value_counts())
+        # Display additional information about processed data
+        print("\nProcessed feature statistics:")
+        for col in self.X.columns:
+            print(f"{col}: Mean={self.X[col].mean():.4f}, Std={self.X[col].std():.4f}")
         
-        # Encode categorical features
-        le_dict = {}
-        for col in self.categorical_columns:
-            le_dict[col] = LabelEncoder()
-            data[col] = le_dict[col].fit_transform(data[col])
-            unique_values = data[col].nunique()
-            print(f"Encoded column '{col}' with {unique_values} unique values")
-
-        # Feature-target split (using 'evil' as target)
-        self.X = data.drop(['evil', 'sus'], axis=1)  # Dropping both 'evil' and 'sus' columns
-        self.y = data['evil']
-        
-        # Display target distribution
-        self.original_class_distribution = self.y.value_counts(normalize=True) * 100
-        print("\nTarget class distribution:")
-        class_dist_df = pd.DataFrame({
-            'Class': self.original_class_distribution.index,
-            'Count': self.y.value_counts().values,
-            'Percentage (%)': self.original_class_distribution.values
-        })
-        print(class_dist_df)
-        
-        # Check for class imbalance
-        if len(class_dist_df) > 1:
-            imbalance_ratio = class_dist_df['Count'].max() / class_dist_df['Count'].min()
-            print(f"\nClass imbalance ratio (majority:minority): {imbalance_ratio:.2f}:1")
-            
-            if imbalance_ratio > 10:
-                print("WARNING: Severe class imbalance detected. Consider using class weights or balancing techniques.")
+        print("\nCorrelation with target:")
+        correlations = df_scaled.corr()['evil'].sort_values(ascending=False)
+        print(correlations)
         
         print(f"\nPreprocessing completed. Final dataset shape: {self.X.shape}")
         print("="*80)
@@ -116,7 +63,7 @@ class DataProcessor:
     
     def sample_data(self, sample_size=10000):
         """
-        Sample data using stratified sampling to maintain class distribution.
+        Sample data using properly balanced stratified sampling from utils.py.
         
         Args:
             sample_size: Number of samples to extract
@@ -127,132 +74,131 @@ class DataProcessor:
         
         print(f"Original dataset size: {self.X.shape[0]} samples with {self.X.shape[1]} features")
         sample_size = min(sample_size, self.X.shape[0])  # Cap at specified sample size
-        print(f"Sampling {sample_size} records using stratified sampling to maintain class distribution")
-
-        # Calculate sampling ratio
-        sampling_ratio = sample_size / self.X.shape[0]
-        print(f"Sampling ratio: {sampling_ratio:.4f} ({sampling_ratio*100:.2f}% of the original data)")
-
-        # Stratified sampling to maintain class distribution
-        sss = StratifiedShuffleSplit(n_splits=1, test_size=sampling_ratio, random_state=42)
-        for _, sample_idx in sss.split(self.X, self.y):
-            self.X_sample = self.X.iloc[sample_idx].reset_index(drop=True)
-            self.y_sample = self.y.iloc[sample_idx].reset_index(drop=True)
+        print(f"Sampling {sample_size} records using balanced stratified sampling")
         
-        print(f"Sampled dataset shape: {self.X_sample.shape[0]} rows × {self.X_sample.shape[1]} columns")
+        # Convert to numpy arrays for sampling function
+        X_array = self.X.values
+        y_array = self.y.values
         
-        # Verify class distribution is maintained
-        self.sampled_class_distribution = self.y_sample.value_counts(normalize=True) * 100
+        # Perform balanced stratified sampling
+        X_sampled, y_sampled, sample_indices = properly_balanced_stratified_sample(
+            X_array, y_array, sample_size, random_state=42
+        )
         
-        # Create comparison dataframe
+        self.sample_indices = sample_indices
+        
+        # Convert back to pandas DataFrame/Series with original column names
+        self.X_sample = pd.DataFrame(X_sampled, columns=self.X.columns)
+        self.y_sample = pd.Series(y_sampled, name='evil')
+        
+        print(f"\nSampled dataset shape: {self.X_sample.shape[0]} rows × {self.X_sample.shape[1]} columns")
+        
+        # Calculate class distribution similarity
+        original_class_dist = np.bincount(self.y.astype(int)) / len(self.y)
+        sampled_class_dist = np.bincount(self.y_sample.astype(int)) / len(self.y_sample)
+        
+        # Create comparison dataframe for reporting
+        classes = np.unique(np.concatenate([self.y.unique(), self.y_sample.unique()]))
         comparison_df = pd.DataFrame({
-            'Class': self.original_class_distribution.index,
-            'Original (%)': self.original_class_distribution.values,
-            'Sampled (%)': [self.sampled_class_distribution.get(c, 0) for c in self.original_class_distribution.index],
-            'Difference (%)': [self.sampled_class_distribution.get(c, 0) - self.original_class_distribution.get(c, 0) 
-                            for c in self.original_class_distribution.index]
+            'Class': classes,
+            'Original Count': [np.sum(self.y == c) for c in classes],
+            'Original (%)': [np.sum(self.y == c)/len(self.y)*100 for c in classes],
+            'Sampled Count': [np.sum(self.y_sample == c) for c in classes],
+            'Sampled (%)': [np.sum(self.y_sample == c)/len(self.y_sample)*100 for c in classes],
         })
         
         print("\nClass distribution comparison (original vs. sampled):")
         print(comparison_df)
         
-        # Calculate distribution similarity measures
-        jsd = self._jensen_shannon_divergence(
-            self.original_class_distribution.values/100, 
-            np.array([self.sampled_class_distribution.get(c, 0) for c in self.original_class_distribution.index])/100
-        )
+        # Check if original suspicious samples are present in the sample
+        if 'sus' in self.original_data.columns:
+            suspicious_mask = (self.original_data['evil'] == 0) & (self.original_data['sus'] == 1)
+            suspicious_indices = suspicious_mask[suspicious_mask].index
+            
+            suspicious_in_sample = np.intersect1d(suspicious_indices, sample_indices)
+            print(f"\nSuspicious samples (evil=0, sus=1) in the sampled data: {len(suspicious_in_sample)}")
+            print(f"Percentage of sampled data that is suspicious: {len(suspicious_in_sample)/len(sample_indices)*100:.2f}%")
         
-        print(f"\nJensen-Shannon divergence between original and sampled distributions: {jsd:.8f}")
-        print(f"Interpretation: Values close to 0 indicate similar distributions (ideal: 0)")
         print("="*80)
-        
         return self
     
-    def _jensen_shannon_divergence(self, p, q):
-        """Calculate Jensen-Shannon divergence between two distributions."""
-        m = (p + q) / 2
-        return (entropy(p, m) + entropy(q, m)) / 2
-    
     def scale_features(self):
-        """Standardize features."""
+        """
+        Scale features if needed and handle any NaN values.
+        """
         print("\n" + "="*80)
-        print(f"FEATURE SCALING - Started at {datetime.now().strftime('%H:%M:%S')}")
+        print(f"FEATURE SCALING AND NAN HANDLING - Started at {datetime.now().strftime('%H:%M:%S')}")
         print("="*80)
         
-        print("Standardizing features using StandardScaler (mean=0, std=1)")
-        scaler = StandardScaler()
-        self.X_scaled = scaler.fit_transform(self.X_sample)
+        # Check for NaN values before scaling
+        nan_count_before = np.isnan(self.X_sample.values).sum()
+        if nan_count_before > 0:
+            print(f"WARNING: Found {nan_count_before} NaN values in the data before scaling")
+            print("Filling NaN values with column medians...")
+            
+            # Check which columns have NaNs
+            nan_cols = self.X_sample.columns[self.X_sample.isna().any()].tolist()
+            print(f"Columns with NaN values: {nan_cols}")
+            
+            # Fill NaN values by column
+            for col in nan_cols:
+                median_val = self.X_sample[col].median()
+                nan_count_in_col = self.X_sample[col].isna().sum()
+                print(f"  - Column '{col}': {nan_count_in_col} NaN values, filling with median {median_val}")
+                self.X_sample[col] = self.X_sample[col].fillna(median_val)
+        else:
+            print("No NaN values found in the data before scaling")
+        
+        # Data might already be scaled by the preprocessing function, but we'll check
+        # and standardize if needed
+        if np.abs(self.X_sample.mean().mean()) < 0.01 and np.abs(self.X_sample.std().mean() - 1.0) < 0.01:
+            print("Data appears to be already standardized, skipping StandardScaler")
+            self.X_scaled = self.X_sample.values
+        else:
+            print("Standardizing features using StandardScaler (mean=0, std=1)")
+            scaler = StandardScaler()
+            self.X_scaled = scaler.fit_transform(self.X_sample)
+        
+        # Verify no NaN values after scaling
+        nan_count_after = np.isnan(self.X_scaled).sum()
+        if nan_count_after > 0:
+            print(f"WARNING: Found {nan_count_after} NaN values after scaling!")
+            print("Replacing remaining NaN values with zeros...")
+            self.X_scaled = np.nan_to_num(self.X_scaled)
+            
+            # Double-check
+            final_nan_count = np.isnan(self.X_scaled).sum()
+            if final_nan_count > 0:
+                raise ValueError(f"Could not remove all NaN values! {final_nan_count} NaNs remain.")
+            else:
+                print("Successfully removed all NaN values")
+        else:
+            print("No NaN values found after scaling")
         
         # Display scaling statistics
         scale_mean = np.mean(self.X_scaled, axis=0)
         scale_std = np.std(self.X_scaled, axis=0)
         
-        print("\nScaling verification (checking a few columns):")
-        for i in range(min(5, self.X_scaled.shape[1])):
-            print(f"Column {i}: Mean = {scale_mean[i]:.6f}, Std = {scale_std[i]:.6f}")
+        print("\nScaling verification (checking all columns):")
+        for i, col in enumerate(self.X_sample.columns):
+            print(f"{col}: Mean = {scale_mean[i]:.6f}, Std = {scale_std[i]:.6f}")
             
         print(f"\nOverall mean of scaled data: {np.mean(scale_mean):.6f}")
         print(f"Overall std of scaled data: {np.mean(scale_std):.6f}")
-        print("="*80)
         
+        # Check for any outliers in the scaled data
+        print("\nChecking for outliers in scaled data:")
+        for i, col in enumerate(self.X_sample.columns):
+            q1 = np.percentile(self.X_scaled[:, i], 25)
+            q3 = np.percentile(self.X_scaled[:, i], 75)
+            iqr = q3 - q1
+            lower_bound = q1 - 1.5 * iqr
+            upper_bound = q3 + 1.5 * iqr
+            outliers = np.sum((self.X_scaled[:, i] < lower_bound) | (self.X_scaled[:, i] > upper_bound))
+            print(f"{col}: {outliers} outliers ({outliers/len(self.X_scaled)*100:.2f}% of samples)")
+        
+        print("="*80)
         return self
-    
-    def analyze_feature_importance(self, should_show=True):
-        """
-        Analyze feature importance using Random Forest.
-        
-        Args:
-            should_show: Whether to display the plot
-            
-        Returns:
-            DataFrame with feature importance
-        """
-        print("\n" + "="*80)
-        print(f"FEATURE IMPORTANCE ANALYSIS - Started at {datetime.now().strftime('%H:%M:%S')}")
-        print("="*80)
-        
-        print("Training Random Forest to analyze feature importance...")
-        rf = RandomForestClassifier(n_estimators=100, random_state=42)
-        rf.fit(self.X_scaled, self.y_sample)
-
-        # Create feature importance DataFrame
-        feature_importance = pd.DataFrame({
-            'Feature': self.X_sample.columns,
-            'Importance': rf.feature_importances_
-        }).sort_values(by='Importance', ascending=False)
-
-        # Display top and bottom features
-        print("\nTop 15 most important features:")
-        print(feature_importance.head(15))
-        
-        print("\nBottom 5 least important features:")
-        print(feature_importance.tail(5))
-        
-        # Calculate cumulative importance
-        feature_importance['Cumulative_Importance'] = feature_importance['Importance'].cumsum()
-        
-        # Find how many features are needed for X% of importance
-        thresholds = [0.5, 0.75, 0.9, 0.95]
-        for threshold in thresholds:
-            n_features = len(feature_importance[feature_importance['Cumulative_Importance'] <= threshold])
-            print(f"\nNumber of features needed for {threshold*100}% of total importance: {n_features+1}")
-        
-        # Visualize feature importance
-        plt.figure(figsize=(12, 8))
-        sns.barplot(x='Importance', y='Feature', data=feature_importance.head(15))
-        plt.title('Top 15 Features by Importance')
-        plt.tight_layout()
-        plt.savefig('feature_importance.png')
-        
-        if should_show:
-            plt.show()
-        else:
-            plt.close()
-            
-        print("\nFeature importance analysis completed")
-        print("="*80)
-        
-        return feature_importance
 
 
 class DimensionalityReduction:
@@ -461,7 +407,7 @@ class TSNEAnalyzer(DimensionalityReduction):
             self.X_tsne, 
             y,
             title=f't-SNE Visualization (perplexity={self.perplexity_used})',
-            filename='tsne_visualization.png',
+            filename=f'tsne_visualization_{len(self.X_tsne)}.png',
             x_label='t-SNE Feature 1',
             y_label='t-SNE Feature 2'
         )
@@ -642,7 +588,7 @@ class UMAPAnalyzer(DimensionalityReduction):
             self.X_umap, 
             y,
             title=f'UMAP Visualization (n_neighbors={self.n_neighbors_used}, min_dist={self.min_dist_used})',
-            filename=f'umap_visualization_{len(self.y)}_samples.png',
+            filename=f'umap_visualization_{len(self.X_umap)}.png',
             x_label='UMAP Feature 1',
             y_label='UMAP Feature 2'
         )
@@ -805,9 +751,15 @@ def main(should_show=True):
     data_processor = DataProcessor()
     
     # Load, preprocess, sample, and scale data
-    SAMPLE_SIZE = 10000
+    SAMPLE_SIZE = 25000
     data_processor.load_and_preprocess().sample_data(sample_size=SAMPLE_SIZE).scale_features()
     
+    if not os.path.exists("plots"):
+        os.mkdir("plots")
+
+    if not os.path.exists(f"plots{os.sep}Dimension Reduction"):
+        os.mkdir(f"plots{os.sep}Dimension Reduction")
+
     # Run t-SNE analysis first
     print("\n========== Starting t-SNE Analysis ==========")
     tsne = TSNEAnalyzer(should_show=should_show, plot_dir=f"plots{os.sep}Dimension Reduction")
@@ -823,7 +775,6 @@ def main(should_show=True):
     umap.visualize(data_processor.y_sample)
     umap.analyze_label_distribution()
     umap.compare_parameters(data_processor.X_scaled, data_processor.y_sample)
-    return tsne, umap
 
 
 if __name__ == "__main__":

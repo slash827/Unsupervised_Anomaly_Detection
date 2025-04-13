@@ -1,0 +1,381 @@
+================================================================================
+DATA LOADING AND PREPROCESSING - Started at 17:00:26
+================================================================================
+Found 3 CSV files: ['data\\labelled_testing_data.csv', 'data\\labelled_training_data.csv', 'data\\labelled_validation_data.csv']
+Loading data from data/...
+Original dataset shape: (1141078, 16)
+Columns in the dataset: ['timestamp', 'processId', 'threadId', 'parentProcessId', 'userId', 'mountNamespace', 'processName', 'hostName', 'eventId', 'eventName', 'stackAddresses', 'argsNum', 'returnValue', 'args', 'sus', 'evil']
+
+Class distribution:
+Benign samples (evil=0, sus=0): 967564 (84.79%)
+Suspicious samples (evil=0, sus=1): 15082 (1.32%)
+Malicious samples (evil=1): 158432 (13.88%)
+
+Creating binary features based on paper recommendations...
+
+Feature value ranges before preprocessing:
+isSystemProcess: Min=0, Max=1, Unique values=2
+isSystemParentProcess: Min=0, Max=1, Unique values=2
+isSystemUser: Min=0, Max=1, Unique values=2
+isDefaultMountNamespace: Min=0, Max=1, Unique values=2
+eventId: Min=2, Max=1010, Unique values=46
+argsNum: Min=0, Max=5, Unique values=6
+returnValueCat: Min=-1, Max=1, Unique values=3
+Processed dataset shape: (1141078, 9)
+
+Processed feature statistics:
+isSystemProcess: Mean=-0.0000, Std=1.0000
+isSystemParentProcess: Mean=-0.0000, Std=1.0000
+isSystemUser: Mean=-0.0000, Std=1.0000
+isDefaultMountNamespace: Mean=0.0000, Std=1.0000
+eventId: Mean=0.0000, Std=1.0000
+argsNum: Mean=-0.0000, Std=1.0000
+returnValueCat: Mean=0.0000, Std=1.0000
+
+Correlation with target:
+evil                       1.000000
+sus                        0.948190
+isDefaultMountNamespace    0.261560
+argsNum                    0.092218
+isSystemProcess           -0.057542
+isSystemParentProcess     -0.126667
+eventId                   -0.205197
+returnValueCat            -0.621298
+isSystemUser              -0.975275
+Name: evil, dtype: float64
+
+Preprocessing completed. Final dataset shape: (1141078, 7)
+================================================================================
+
+================================================================================
+DATA SAMPLING - Started at 17:00:31
+================================================================================
+Original dataset size: 1141078 samples with 7 features
+Sampling 25000 records using balanced stratified sampling
+Original distribution: Class 0: 982646 (86.12%), Class 1: 158432 (13.88%),
+Sampled distribution: Class 0: 21529 (86.12%), Class 1: 3471 (13.88%), 
+
+Sampled dataset shape: 25000 rows × 7 columns
+
+Class distribution comparison (original vs. sampled):
+   Class  Original Count  Original (%)  Sampled Count  Sampled (%)
+0      0          982646     86.115585          21529       86.116
+1      1          158432     13.884415           3471       13.884
+
+Suspicious samples (evil=0, sus=1) in the sampled data: 323
+Percentage of sampled data that is suspicious: 1.29%
+================================================================================
+
+================================================================================
+FEATURE SCALING AND NAN HANDLING - Started at 17:00:31
+================================================================================
+No NaN values found in the data before scaling
+Standardizing features using StandardScaler (mean=0, std=1)
+No NaN values found after scaling
+
+Scaling verification (checking all columns):
+isSystemProcess: Mean = 0.000000, Std = 1.000000
+isSystemParentProcess: Mean = -0.000000, Std = 1.000000
+isSystemUser: Mean = -0.000000, Std = 1.000000
+isDefaultMountNamespace: Mean = -0.000000, Std = 1.000000
+eventId: Mean = -0.000000, Std = 1.000000
+argsNum: Mean = -0.000000, Std = 1.000000
+returnValueCat: Mean = 0.000000, Std = 1.000000
+
+Overall mean of scaled data: -0.000000
+Overall std of scaled data: 1.000000
+
+Checking for outliers in scaled data:
+isSystemProcess: 449 outliers (1.80% of samples)
+isSystemParentProcess: 2185 outliers (8.74% of samples)
+isSystemUser: 3571 outliers (14.28% of samples)
+isDefaultMountNamespace: 0 outliers (0.00% of samples)
+eventId: 4116 outliers (16.46% of samples)
+argsNum: 0 outliers (0.00% of samples)
+returnValueCat: 10058 outliers (40.23% of samples)
+================================================================================
+
+========== Starting t-SNE Analysis ==========
+
+================================================================================
+t-SNE DIMENSIONALITY REDUCTION - Started at 17:00:31
+================================================================================
+Running t-SNE with:
+  - Perplexity: 30
+  - Iterations: 1000
+  - Components: 2
+  - Input dimensions: 7
+[t-SNE] Computing 91 nearest neighbors...
+[t-SNE] Indexed 25000 samples in 0.022s...
+[t-SNE] Computed neighbors for 25000 samples in 1.402s...
+[t-SNE] Computed conditional probabilities for sample 1000 / 25000
+[t-SNE] Computed conditional probabilities for sample 2000 / 25000
+[t-SNE] Computed conditional probabilities for sample 3000 / 25000
+[t-SNE] Computed conditional probabilities for sample 4000 / 25000
+[t-SNE] Computed conditional probabilities for sample 5000 / 25000
+[t-SNE] Computed conditional probabilities for sample 6000 / 25000
+[t-SNE] Computed conditional probabilities for sample 7000 / 25000
+[t-SNE] Computed conditional probabilities for sample 8000 / 25000
+[t-SNE] Computed conditional probabilities for sample 9000 / 25000
+[t-SNE] Computed conditional probabilities for sample 10000 / 25000
+[t-SNE] Computed conditional probabilities for sample 11000 / 25000
+[t-SNE] Computed conditional probabilities for sample 12000 / 25000
+[t-SNE] Computed conditional probabilities for sample 13000 / 25000
+[t-SNE] Computed conditional probabilities for sample 14000 / 25000
+[t-SNE] Computed conditional probabilities for sample 15000 / 25000
+[t-SNE] Computed conditional probabilities for sample 16000 / 25000
+[t-SNE] Computed conditional probabilities for sample 17000 / 25000
+[t-SNE] Computed conditional probabilities for sample 18000 / 25000
+[t-SNE] Computed conditional probabilities for sample 19000 / 25000
+[t-SNE] Computed conditional probabilities for sample 20000 / 25000
+[t-SNE] Computed conditional probabilities for sample 21000 / 25000
+[t-SNE] Computed conditional probabilities for sample 22000 / 25000
+[t-SNE] Computed conditional probabilities for sample 23000 / 25000
+[t-SNE] Computed conditional probabilities for sample 24000 / 25000
+[t-SNE] Computed conditional probabilities for sample 25000 / 25000
+[t-SNE] Mean sigma: 0.000000
+[t-SNE] KL divergence after 250 iterations with early exaggeration: 53.020603
+[t-SNE] KL divergence after 1000 iterations: -1.286378
+
+t-SNE completed in 73.35 seconds
+Output shape: (25000, 2)
+Memory usage of t-SNE output: 0.19 MB
+X-axis range: 292.7878
+Y-axis range: 288.6318
+Aspect ratio (x/y): 1.0144
+
+Point distribution statistics:
+  Min distance between points: 0.0000
+  Max distance between points: 321.3676
+  Mean distance between points: 122.2644
+  Median distance between points: 118.9781
+================================================================================
+
+Visualizing t-SNE results...
+Visualization saved to plots\Dimension Reduction\tsne_visualization_25000.png
+
+Embedding statistics:
+Range of x-coordinates: [-133.4295, 159.3583]
+Range of y-coordinates: [-112.0807, 176.5511]
+Silhouette score: 0.1367
+Interpretation: Values closer to 1 indicate better-defined clusters (range: -1 to 1)
+The classes show weak separation in the embedding space.
+
+Analyzing label distribution in t-SNE space...
+Distribution of labels:
+   Label  Count  Percentage
+0      0  21529      86.116
+1      1   3471      13.884
+
+Cluster-specific statistics:
+
+Cluster 1:
+  Number of points: 3471 (13.88%)
+  Centroid: (-61.1839, 38.8977)
+  Spread: x-std=34.5591, y-std=23.2001
+  Average distance between points: 25.0821
+
+Cluster 0:
+  Number of points: 21529 (86.12%)
+  Centroid: (15.4572, -7.1686)
+  Spread: x-std=63.8183, y-std=74.3851
+  Average distance between points: 122.2742
+
+================================================================================
+t-SNE PERPLEXITY COMPARISON - Started at 17:02:09
+================================================================================
+Comparing t-SNE with perplexity values: [12, 25, 50]
+
+Running t-SNE with perplexity=12
+  Completed in 48.59 seconds
+  Silhouette score: 0.0488
+  Same-class ratio in 10 nearest neighbors: 0.9978
+
+Running t-SNE with perplexity=25
+  Completed in 65.82 seconds
+  Silhouette score: 0.2046
+  Same-class ratio in 10 nearest neighbors: 0.9975
+
+Running t-SNE with perplexity=50
+  Completed in 94.79 seconds
+  Silhouette score: 0.0212
+  Same-class ratio in 10 nearest neighbors: 0.9975
+
+Metrics comparison across perplexity values:
+   Perplexity  Silhouette  Same-Class Ratio  Runtime (s)
+0          12    0.048838          0.997778    48.593633
+1          25    0.204627          0.997524    65.817981
+2          50    0.021216          0.997484    94.789400
+
+Best perplexity based on silhouette score: 25.0
+Best perplexity based on same-class ratio: 12.0
+================================================================================
+
+========== Starting UMAP Analysis ==========
+
+================================================================================
+UMAP DIMENSIONALITY REDUCTION - Started at 17:06:24
+================================================================================
+Running UMAP with:
+  - n_neighbors: 15
+  - min_dist: 0.1
+  - Components: 2
+  - Input dimensions: 7
+UMAP(n_jobs=1, random_state=42, verbose=True)
+Sun Apr 13 17:06:24 2025 Construct fuzzy simplicial set
+Sun Apr 13 17:06:24 2025 Finding Nearest Neighbors
+Sun Apr 13 17:06:24 2025 Building RP forest with 13 trees
+Sun Apr 13 17:06:28 2025 NN descent for 15 iterations
+         1  /  15
+         2  /  15
+        Stopping threshold met -- exiting after 2 iterations
+Sun Apr 13 17:06:39 2025 Finished Nearest Neighbor Search
+Sun Apr 13 17:06:42 2025 Construct embedding
+Epochs completed:   0%|                                                                                                                             0/200 [00:00]completed  0  /  200 epochs
+Epochs completed:  10%| ████████████▏                                                                                                              20/200 [00:04]completed  20  /  200 epochs
+Epochs completed:  20%| ████████████████████████▍                                                                                                  40/200 [00:07]completed  40  /  200 epochs
+Epochs completed:  30%| ████████████████████████████████████▌                                                                                      60/200 [00:11]completed  60  /  200 epochs
+Epochs completed:  40%| ████████████████████████████████████████████████▊                                                                          80/200 [00:15]completed  80  /  200 epochs
+Epochs completed:  50%| ████████████████████████████████████████████████████████████▌                                                             100/200 [00:19]completed  100  /  200 epochs
+Epochs completed:  60%| ████████████████████████████████████████████████████████████████████████▌                                                 120/200 [00:22]completed  120  /  200 epochs
+Epochs completed:  70%| ████████████████████████████████████████████████████████████████████████████████████▋                                     140/200 [00:26]completed  140  /  200 epochs
+Epochs completed:  80%| ████████████████████████████████████████████████████████████████████████████████████████████████▊                         160/200 [00:30]completed  160  /  200 epochs
+Epochs completed:  90%| ████████████████████████████████████████████████████████████████████████████████████████████████████████████▉             180/200 [00:33]completed  180  /  200 epochs
+Epochs completed: 100%| █████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████ 200/200 [00:37] 
+Sun Apr 13 17:07:20 2025 Finished embedding
+
+UMAP completed in 55.57 seconds
+Output shape: (25000, 2)
+Memory usage of UMAP output: 0.19 MB
+X-axis range: 41.7756
+Y-axis range: 44.3983
+Aspect ratio (x/y): 0.9409
+
+Point distribution statistics:
+  Min distance between points: 0.0000
+  Max distance between points: 44.4172
+  Mean distance between points: 16.7128
+  Median distance between points: 16.0757
+================================================================================
+
+Visualizing UMAP results...
+Visualization saved to plots\Dimension Reduction\umap_visualization_25000.png
+
+Embedding statistics:
+Range of x-coordinates: [-20.9603, 20.8153]
+Range of y-coordinates: [-18.0877, 26.3106]
+Silhouette score: 0.1914
+Interpretation: Values closer to 1 indicate better-defined clusters (range: -1 to 1)
+The classes show weak separation in the embedding space.
+
+Analyzing label distribution in UMAP space...
+Distribution of labels:
+   Label  Count  Percentage
+0      0  21529      86.116
+1      1   3471      13.884
+
+Cluster-specific statistics:
+
+Cluster 1:
+  Number of points: 3471 (13.88%)
+  Centroid: (3.9315, 14.4021)
+  Spread: x-std=4.4203, y-std=3.4389
+  Average distance between points: 3.5019
+
+Cluster 0:
+  Number of points: 21529 (86.12%)
+  Centroid: (-0.4438, 1.1356)
+  Spread: x-std=9.7497, y-std=8.7472
+  Average distance between points: 16.3676
+
+================================================================================
+UMAP PARAMETER COMPARISON - Started at 17:07:42
+================================================================================
+Comparing UMAP with different parameter combinations:
+  - n_neighbors values: [5, 15, 30]
+  - min_dist values: [0.0, 0.1, 0.5]
+  - Total combinations: 9
+
+Running UMAP with n_neighbors=5, min_dist=0.0
+  Completed in 17.99 seconds
+  Silhouette score: 0.2545
+  Same-class ratio in 10 nearest neighbors: 0.9860
+  Average minimum distance between cluster centroids: 12.7377
+
+Running UMAP with n_neighbors=5, min_dist=0.1
+  Completed in 17.90 seconds
+  Silhouette score: 0.2350
+  Same-class ratio in 10 nearest neighbors: 0.9846
+  Average minimum distance between cluster centroids: 12.3480
+
+Running UMAP with n_neighbors=5, min_dist=0.5
+  Completed in 17.56 seconds
+  Silhouette score: 0.2127
+  Same-class ratio in 10 nearest neighbors: 0.9842
+  Average minimum distance between cluster centroids: 12.5682
+
+Running UMAP with n_neighbors=15, min_dist=0.0
+  Completed in 38.14 seconds
+  Silhouette score: 0.1409
+  Same-class ratio in 10 nearest neighbors: 0.9972
+  Average minimum distance between cluster centroids: 12.2015
+
+Running UMAP with n_neighbors=15, min_dist=0.1
+  Completed in 39.95 seconds
+  Silhouette score: 0.1481
+  Same-class ratio in 10 nearest neighbors: 0.9971
+  Average minimum distance between cluster centroids: 12.6750
+
+Running UMAP with n_neighbors=15, min_dist=0.5
+  Completed in 36.67 seconds
+  Silhouette score: 0.0470
+  Same-class ratio in 10 nearest neighbors: 0.9971
+  Average minimum distance between cluster centroids: 7.9288
+
+Running UMAP with n_neighbors=30, min_dist=0.0
+  Completed in 72.80 seconds
+  Silhouette score: 0.2109
+  Same-class ratio in 10 nearest neighbors: 0.9970
+  Average minimum distance between cluster centroids: 18.0110
+
+Running UMAP with n_neighbors=30, min_dist=0.1
+  Completed in 78.34 seconds
+  Silhouette score: 0.1458
+  Same-class ratio in 10 nearest neighbors: 0.9971
+  Average minimum distance between cluster centroids: 15.4058
+
+Running UMAP with n_neighbors=30, min_dist=0.5
+  Completed in 74.18 seconds
+  Silhouette score: 0.0376
+  Same-class ratio in 10 nearest neighbors: 0.9970
+  Average minimum distance between cluster centroids: 11.0485
+
+Metrics comparison across parameter combinations:
+   n_neighbors  min_dist  Silhouette  Same-Class Ratio  Inter-Class Distance  Runtime (s)
+0            5       0.0    0.254471          0.985964             12.737667    17.985303
+1            5       0.1    0.234980          0.984573             12.347976    17.903354
+2            5       0.5    0.212688          0.984182             12.568203    17.560849
+3           15       0.0    0.140864          0.997227             12.201491    38.140192
+4           15       0.1    0.148056          0.997129             12.674969    39.949770
+5           15       0.5    0.046953          0.997058              7.928818    36.672492
+6           30       0.0    0.210920          0.997036             18.011024    72.803138
+7           30       0.1    0.145762          0.997111             15.405753    78.344549
+8           30       0.5    0.037573          0.996951             11.048547    74.180290
+
+Best parameter combinations:
+For silhouette score: n_neighbors=5.0, min_dist=0.0
+For same-class ratio: n_neighbors=15.0, min_dist=0.0
+For inter-class distance: n_neighbors=30.0, min_dist=0.0
+
+Parameter selection recommendations:
+  - Lower n_neighbors values (5-15) tend to preserve local structure
+  - Higher n_neighbors values (30+) tend to preserve global structure
+  - Lower min_dist values (0.0-0.1) create tighter clusters
+  - Higher min_dist values (0.5+) create more spread out visualizations
+
+Best overall parameter combination: n_neighbors=30.0, min_dist=0.0
+  Silhouette: 0.2109
+  Same-Class Ratio: 0.9970
+  Inter-Class Distance: 18.0110
+================================================================================
+Total execution time: 958.55 seconds
