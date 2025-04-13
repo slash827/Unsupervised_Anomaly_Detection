@@ -1,6 +1,7 @@
 import time
 import os
-import glob
+import warnings
+warnings.filterwarnings("ignore")
 
 import pandas as pd
 import numpy as np
@@ -36,40 +37,6 @@ class BethDatasetEDA:
         # Create output directory if it doesn't exist
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-    
-    def load_data(self):
-        """
-        Load and preprocess the BETH dataset
-        
-        Returns:
-            pandas.DataFrame: Loaded and combined dataframe
-        """
-        # Load and combine datasets
-        csv_files = glob.glob(f"{self.data_path}{os.sep}*[!dns].csv")
-        
-        # Print information about each file before combining
-        print(f"Found {len(csv_files)} CSV files:")
-        for file_path in csv_files:
-            file_size = os.path.getsize(file_path) / (1024 * 1024)  # Size in MB
-            print(f"- {os.path.basename(file_path)}: {file_size:.2f} MB")
-        
-        # Check if the dataset is too large
-        total_size_mb = sum(os.path.getsize(f) for f in csv_files) / (1024 * 1024)
-        print(f"\nTotal dataset size: {total_size_mb:.2f} MB")
-        
-        # Create empty list to store individual dataframes for analysis
-        dataframes = []
-        
-        # Load each file and append to the list with source file information
-        for file_path in csv_files:
-            df = pd.read_csv(file_path)
-            df['source_file'] = os.path.basename(file_path)
-            dataframes.append(df)
-        
-        # Combine all dataframes
-        self.data = pd.concat(dataframes, ignore_index=True)
-        
-        return self.data
     
     def add_specific_data(self, csv_names):
         """
@@ -444,81 +411,117 @@ class BethDatasetEDA:
     
     def analyze_temporal_patterns(self):
         """
-        Analyze temporal patterns if time-related columns exist
+        Analyze temporal patterns using timestamp as a numeric value
+        without modifying the original dataframe
         """
         if self.data is None:
             print("Data not properly initialized. Call load_data() first.")
             return
         
         # Check for time-related columns
-        time_cols = [col for col in self.data.columns if 'time' in col.lower() or 'date' in col.lower()]
+        time_cols = [col for col in self.data.columns if 'time' in col.lower()]
         
         if not time_cols:
             print("No time-related columns found in the dataset.")
             return
         
         print("\n===== TEMPORAL ANALYSIS =====")
-        time_col = time_cols[0]
+        time_col = time_cols[0]  # Using the first time column found (timestamp)
         
-        # Convert to datetime
-        if self.data[time_col].dtype == 'object':
-            self.data[time_col] = pd.to_datetime(self.data[time_col], errors='coerce')
-        
-        # Time-based features
-        self.data['hour'] = self.data[time_col].dt.hour
-        self.data['day'] = self.data[time_col].dt.day
-        self.data['day_of_week'] = self.data[time_col].dt.dayofweek
-        
-        # Activity by hour
-        plt.figure(figsize=(12, 6))
-        hourly_activity = self.data.groupby('hour').size()
-        hourly_evil = self.data[self.data['evil'] == 1].groupby('hour').size()
-        
-        plt.subplot(1, 2, 1)
-        sns.barplot(x=hourly_activity.index, y=hourly_activity.values)
-        plt.title('Activity by Hour')
-        plt.xlabel('Hour')
-        
-        plt.subplot(1, 2, 2)
-        evil_ratio_hourly = hourly_evil / hourly_activity
-        sns.barplot(x=evil_ratio_hourly.index, y=evil_ratio_hourly.values)
-        plt.title('Evil Ratio by Hour')
-        plt.xlabel('Hour')
-        
-        plt.tight_layout()
-        plt.savefig(f"{self.output_dir}/hourly_patterns.png")
-        plt.close()
-        
-        # Activity by day of week
-        plt.figure(figsize=(12, 6))
-        dow_activity = self.data.groupby('day_of_week').size()
-        dow_evil = self.data[self.data['evil'] == 1].groupby('day_of_week').size()
-        evil_ratio_dow = dow_evil / dow_activity
-        
-        plt.subplot(1, 2, 1)
-        sns.barplot(x=dow_activity.index, y=dow_activity.values)
-        plt.title('Activity by Day of Week')
-        plt.xlabel('Day of Week (0=Monday, 6=Sunday)')
-        
-        plt.subplot(1, 2, 2)
-        sns.barplot(x=evil_ratio_dow.index, y=evil_ratio_dow.values)
-        plt.title('Evil Ratio by Day of Week')
-        plt.xlabel('Day of Week (0=Monday, 6=Sunday)')
-        
-        plt.tight_layout()
-        plt.savefig(f"{self.output_dir}/day_of_week_patterns.png")
-        plt.close()
-        
-        time_stats = {
-            'time_column': time_col,
-            'hourly_activity': hourly_activity.to_dict(),
-            'hourly_evil_ratio': evil_ratio_hourly.to_dict(),
-            'dow_activity': dow_activity.to_dict(),
-            'dow_evil_ratio': evil_ratio_dow.to_dict()
-        }
-        
-        return time_stats
-    
+        # Check if the timestamp is a float (seconds since boot)
+        if self.data[time_col].dtype in ['float64', 'float32', 'int64', 'int32']:
+            print(f"Using {time_col} as seconds since boot for temporal analysis")
+            
+            # Create a temporary DataFrame for analysis
+            temp_df = pd.DataFrame()
+            temp_df[time_col] = self.data[time_col]
+            temp_df['evil'] = self.data['evil']
+            
+            # Create time-based features in the temporary DataFrame
+            temp_df['hour_of_day'] = (temp_df[time_col] / 3600) % 24
+            
+            # Create binned time periods for visualization
+            temp_df['time_period'] = pd.cut(
+                temp_df[time_col], 
+                bins=24,  # Divide into 24 equal periods
+                labels=[f"Period {i+1}" for i in range(24)]
+            )
+            
+            # Activity by time period
+            plt.figure(figsize=(12, 6))
+            period_activity = temp_df.groupby('time_period').size()
+            period_evil = temp_df[temp_df['evil'] == 1].groupby('time_period').size()
+            
+            # Handle potential division by zero
+            evil_ratio_period = period_evil.divide(period_activity, fill_value=0)
+            
+            plt.subplot(1, 2, 1)
+            sns.barplot(x=period_activity.index, y=period_activity.values)
+            plt.title('Activity by Time Period')
+            plt.xlabel('Time Period')
+            plt.xticks(rotation=90)
+            
+            plt.subplot(1, 2, 2)
+            sns.barplot(x=evil_ratio_period.index, y=evil_ratio_period.values)
+            plt.title('Evil Ratio by Time Period')
+            plt.xlabel('Time Period')
+            plt.xticks(rotation=90)
+            
+            plt.tight_layout()
+            plt.savefig(f"{self.output_dir}/time_period_patterns.png")
+            plt.close()
+            
+            # Explore timestamp distribution
+            plt.figure(figsize=(12, 6))
+            
+            plt.subplot(1, 2, 1)
+            sns.histplot(temp_df[time_col], bins=50, kde=True)
+            plt.title('Distribution of Timestamps')
+            plt.xlabel('Timestamp (seconds since boot)')
+            
+            plt.subplot(1, 2, 2)
+            evil_data = temp_df[temp_df['evil'] == 1][time_col]
+            benign_data = temp_df[temp_df['evil'] == 0][time_col]
+            
+            sns.kdeplot(evil_data, label='Evil', color='red')
+            sns.kdeplot(benign_data, label='Benign', color='blue')
+            plt.title('Timestamp Distribution by Class')
+            plt.xlabel('Timestamp (seconds since boot)')
+            plt.legend()
+            
+            plt.tight_layout()
+            plt.savefig(f"{self.output_dir}/timestamp_distribution.png")
+            plt.close()
+            
+            # Correlation between time of day and evil ratio
+            plt.figure(figsize=(10, 6))
+            # Create hour bins and calculate evil ratio for each hour
+            hour_bins = np.linspace(0, 24, 25)
+            temp_df['hour_bin'] = pd.cut(temp_df['hour_of_day'], bins=hour_bins, labels=range(24))
+            hour_evil_ratio = temp_df.groupby('hour_bin')['evil'].mean()
+            
+            sns.barplot(x=hour_evil_ratio.index, y=hour_evil_ratio.values)
+            plt.title('Evil Ratio by Hour of Day')
+            plt.xlabel('Hour of Day (estimated from seconds since boot)')
+            plt.ylabel('Evil Ratio')
+            plt.xticks(range(0, 24, 2))
+            plt.tight_layout()
+            plt.savefig(f"{self.output_dir}/hour_evil_ratio.png")
+            plt.close()
+            
+            time_stats = {
+                'time_column': time_col,
+                'time_range': [temp_df[time_col].min(), temp_df[time_col].max()],
+                'period_activity': period_activity.to_dict(),
+                'period_evil_ratio': evil_ratio_period.to_dict(),
+                'hour_evil_ratio': hour_evil_ratio.to_dict()
+            }
+            
+            return time_stats
+        else:
+            print(f"Column {time_col} is not a numeric timestamp. Cannot proceed with temporal analysis.")
+            return None
+
     def analyze_sequential_patterns(self):
         """
         Analyze sequential patterns for users if userId and time columns exist
@@ -806,23 +809,14 @@ class BethDatasetEDA:
         return summary
 
 
-def load_eda_data(eda, should_use_all=True):
-    if should_use_all:
-        data = eda.load_data()
-        print(f"Loaded all data with {data.shape[0]:_} rows and {data.shape[1]:_} columns")    
-    else:
-        # Load specific CSV files by name
-        # This will only load the specified files, not all files in the directory
-        csv_files_to_load = ["labelled_training_data.csv", "labelled_validation_data.csv", "labelled_testing_data.csv"]
-        data = eda.add_specific_data(csv_files_to_load)
-        print(f"Loaded train\\validation\\test data with {data.shape[0]:_} rows and {data.shape[1]:_} columns")    
-
-
-def main_claude():
+def main():
     # Initialize the EDA class
-    # Adjust the data_path parameter to your actual data directory
     eda = BethDatasetEDA(data_path="data")
-    load_eda_data(eda, should_use_all=False)
+
+    # Step 1: Load specific CSV files by name
+    csv_files_to_load = ["labelled_training_data.csv", "labelled_validation_data.csv", "labelled_testing_data.csv"]
+    data = eda.add_specific_data(csv_files_to_load)
+    print(f"Loaded train\\validation\\test data with {data.shape[0]:,} rows and {data.shape[1]:,} columns")    
     
     # Step 2: Basic dataset overview
     eda.dataset_overview()
@@ -845,8 +839,8 @@ def main_claude():
     # Step 8: Analyze user behavior (if userId exists)
     eda.analyze_user_behavior()
     
-    # Step 9: Analyze temporal patterns (if time columns exist)
-    # eda.analyze_temporal_patterns()
+    # # Step 9: Analyze temporal patterns (if time columns exist)
+    eda.analyze_temporal_patterns()
     
     # Step 10: Analyze sequential patterns (if userId and time columns exist)
     eda.analyze_sequential_patterns()
@@ -868,44 +862,8 @@ def main_claude():
     eda.generate_summary()
     
 
-def main_eda():
-    # Load and combine datasets
-    csv_files = glob.glob(f"data{os.sep}*[!dns].csv")
-    data = pd.concat([pd.read_csv(f) for f in csv_files], ignore_index=True)
-
-    # Display initial information
-    print("Dataset shape:", data.shape)
-    print("\nFirst few rows:")
-    print(data.head())
-    print("\nMissing values:")
-    print(data.isnull().sum())
-
-    # Separate numeric and categorical columns
-    numeric_columns = data.select_dtypes(include=['int64', 'float64']).columns
-    categorical_columns = data.select_dtypes(include=['object']).columns
-
-    print("\nNumeric columns:", numeric_columns.tolist())
-    print("Categorical columns:", categorical_columns.tolist())
-
-    # Handle missing values
-    if len(numeric_columns) > 0:
-        data[numeric_columns] = data[numeric_columns].fillna(data[numeric_columns].median())
-    if len(categorical_columns) > 0:
-        data[categorical_columns] = data[categorical_columns].fillna(data[categorical_columns].mode().iloc[0])
-
-    # Encode categorical features
-    le_dict = {}
-    for col in categorical_columns:
-        le_dict[col] = LabelEncoder()
-        data[col] = le_dict[col].fit_transform(data[col])
-
-    # Feature-target split (using 'evil' as target)
-    X = data.drop(['evil', 'sus'], axis=1)  # Dropping both 'evil' and 'sus' columns
-    y = data['evil']
-
-
 if __name__ == '__main__':
     start = time.time()
-    main_claude()
+    main()
     end = time.time()
-    print(f"\nTotal EDA execution time: {end - start} seconds")
+    print(f"\nTotal EDA execution time: {end - start:.2f} seconds")

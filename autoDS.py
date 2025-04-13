@@ -7,11 +7,10 @@ from sklearn.ensemble import IsolationForest
 from sklearn.metrics import classification_report, roc_auc_score, precision_recall_fscore_support
 from sklearn.cluster import DBSCAN
 import shap
-import umap_impl
+import umap
 
 import time
 import os, glob
-import traceback
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -296,7 +295,7 @@ def run_umap_with_isolation_forest(X_train, X_test, y_train, y_test):
     try:
         # Perform dimensionality reduction using UMAP
         print("Applying UMAP dimensionality reduction...")
-        reducer = umap_impl.UMAP(
+        reducer = umap.UMAP(
             n_neighbors=15, 
             min_dist=0.1, 
             n_components=5, 
@@ -399,7 +398,7 @@ def analyze_clusters_for_attack_patterns(X_train, y_train):
     try:
         # Apply dimensionality reduction to make clustering more effective
         print("Applying UMAP dimensionality reduction...")
-        reducer = umap_impl.UMAP(
+        reducer = umap.UMAP(
             n_neighbors=min(10, max(5, len(evil_samples) // 10)), 
             min_dist=0.1, 
             n_components=min(5, len(evil_samples) // 5), 
