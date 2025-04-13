@@ -8,155 +8,14 @@ from sklearn.metrics import classification_report, roc_auc_score, precision_reca
 from sklearn.cluster import DBSCAN
 import shap
 import umap_impl
+
 import time
 import os, glob
 import traceback
 import warnings
 warnings.filterwarnings('ignore')
 
-
-def load_and_preprocess(csv_files, file_path):
-    """
-    Load and preprocess the BETH dataset.
-    
-    Args:
-        file_path (str): Path to the BETH dataset CSV file.
-        
-    Returns:
-        tuple: X_train, X_test, y_train, y_test - preprocessed data splits
-    """
-    print("Loading and preprocessing data...")
-    
-    # Load the dataset
-    df = pd.concat([pd.read_csv(f) for f in csv_files], ignore_index=True)
-
-    try:
-        # Load the dataset with optimized memory usage
-        # Use data types that consume less memory when possible
-        dtypes = {
-            'processId': 'int32',
-            'threadId': 'int32',
-            'parentProcessId': 'int32',
-            'userId': 'int32',
-            'eventId': 'int32',
-            'argsNum': 'int32',
-            'returnValue': 'int32',
-            'sus': 'int8',
-            'evil': 'int8'
-        }
-        
-        # Try to use optimized loading if columns match expected schema
-        try:
-            df = pd.concat([pd.read_csv(f, dtype=dtypes) for f in csv_files], ignore_index=True)
-        except:
-            print("Warning: Could not apply optimized data types. Loading with default types.")
-        
-        # Display basic information
-        print(f"Dataset shape: {df.shape}")
-        print(f"Memory usage: {df.memory_usage().sum() / 1024**2:.2f} MB")
-        print(f"Columns: {', '.join(df.columns)}")
-        
-        # Check for missing values
-        missing_values = df.isnull().sum().sum()
-        print(f"Total missing values: {missing_values}")
-        
-        # Sample preprocessing - based on BETH paper recommendations
-        # Create engineered features more efficiently
-        print("Creating engineered features...")
-        
-        # Convert userId to binary (system vs user)
-        if 'userId' in df.columns:
-            df['isSystemUser'] = (df['userId'] < 1000).astype('int8')
-        
-        # Convert mountNamespace to binary
-        if 'mountNamespace' in df.columns:
-            df['isDefaultMountNamespace'] = (df['mountNamespace'] == 4026531840).astype('int8')
-        
-        # Convert returnValue to categorical
-        if 'returnValue' in df.columns:
-            df['returnValueCategory'] = np.select(
-                [df['returnValue'] < 0, df['returnValue'] == 0, df['returnValue'] > 0],
-                [-1, 0, 1], 
-                default=0
-            ).astype('int8')
-        
-        # Assuming 'evil' is the target variable, and 'sus' could be another target
-        y = df['evil']
-        
-        # Memory-efficient feature processing
-        print("Processing features...")
-        
-        # Instead of one-hot encoding everything, handle each categorical feature carefully
-        # This approach consumes much less memory
-        features_to_keep = []
-        X_processed = pd.DataFrame(index=df.index)
-        
-        # Process each column individually
-        for column in df.columns:
-            # Skip target variables
-            if column in ['evil', 'sus']:
-                continue
-                
-            # Skip string columns that would create too many one-hot columns
-            if df[column].dtype == 'object':
-                # Check cardinality (number of unique values)
-                n_unique = df[column].nunique()
-                
-                # For high-cardinality categorical features
-                if n_unique > 100:  # Arbitrary threshold
-                    print(f"Skipping high-cardinality categorical column: {column} ({n_unique} unique values)")
-                    continue
-                    
-                # For moderate-cardinality features, use one-hot but limit to most common values
-                elif n_unique > 10:
-                    print(f"Limited one-hot encoding for {column} ({n_unique} unique values)")
-                    # Get top N most common values
-                    top_values = df[column].value_counts().nlargest(10).index
-                    
-                    # One-hot encode only the top values
-                    for val in top_values:
-                        new_col = f"{column}_{val}"
-                        X_processed[new_col] = (df[column] == val).astype('int8')
-                    
-                    # Add an "other" category for all other values
-                    X_processed[f"{column}_other"] = (~df[column].isin(top_values)).astype('int8')
-                else:
-                    # For low-cardinality features, do regular one-hot encoding
-                    dummies = pd.get_dummies(df[column], prefix=column, drop_first=True)
-                    X_processed = pd.concat([X_processed, dummies], axis=1)
-            else:
-                # Numeric columns are kept as is
-                X_processed[column] = df[column]
-                
-        # Add the engineered features
-        if 'isSystemUser' in df.columns:
-            X_processed['isSystemUser'] = df['isSystemUser']
-        if 'isDefaultMountNamespace' in df.columns:
-            X_processed['isDefaultMountNamespace'] = df['isDefaultMountNamespace']
-        if 'returnValueCategory' in df.columns:
-            X_processed['returnValueCategory'] = df['returnValueCategory']
-        
-        print(f"Processed features shape: {X_processed.shape}")
-        print(f"Processed memory usage: {X_processed.memory_usage().sum() / 1024**2:.2f} MB")
-        
-        # Split the data
-        X_train, X_test, y_train, y_test = train_test_split(
-            X_processed, y, test_size=0.2, random_state=42, 
-            stratify=y if y.nunique() > 1 else None
-        )
-        
-        print(f"Training set shape: {X_train.shape}")
-        print(f"Testing set shape: {X_test.shape}")
-        print(f"Positive class (evil=1) in training: {sum(y_train == 1)} ({sum(y_train == 1)/len(y_train):.2%})")
-        print(f"Positive class (evil=1) in testing: {sum(y_test == 1)} ({sum(y_test == 1)/len(y_test):.2%})")
-        
-        return X_train, X_test, y_train, y_test
-        
-    except Exception as e:
-        print(f"Error during data preprocessing: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        raise
+from utils import load_and_preprocess_beth_data
 
 
 def run_auto_sklearn(X_train, X_test, y_train, y_test):
@@ -671,7 +530,7 @@ def main():
     print(f"Loading data from: {data_path}")
     
     try:
-        X_train, X_test, y_train, y_test = load_and_preprocess(csv_files, data_path)
+        X_train, X_test, y_train, y_test = load_and_preprocess_beth_data(csv_files, data_path)
     except FileNotFoundError:
         print(f"Error: File '{file_path}' not found. Please update the path or provide it as a command line argument.")
         return

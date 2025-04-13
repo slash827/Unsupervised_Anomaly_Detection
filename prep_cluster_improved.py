@@ -330,46 +330,6 @@ def weight_features_by_importance(
     return result_df
 
 
-def balance_classes(feature_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Balance classes in the test set.
-    
-    Args:
-        feature_df: DataFrame with features and labels
-        
-    Returns:
-        DataFrame with balanced test set
-    """
-    print("\n⚖️ Balancing classes in test set...")
-    
-    # Extract test set
-    test_subset = feature_df[feature_df['split'] == 'test']
-    evil_samples = test_subset[test_subset['evil'] == 1]
-    benign_samples = test_subset[test_subset['evil'] == 0]
-    
-    # Calculate how many samples to keep
-    min_class_size = min(len(evil_samples), len(benign_samples))
-    print(f"Balancing to {min_class_size} samples per class")
-    
-    # Randomly sample each class
-    if len(evil_samples) > min_class_size:
-        evil_samples = evil_samples.sample(min_class_size, random_state=42)
-    if len(benign_samples) > min_class_size:
-        benign_samples = benign_samples.sample(min_class_size, random_state=42)
-    
-    # Create balanced test set and keep original train/valid
-    balanced_test = pd.concat([evil_samples, benign_samples])
-    non_test = feature_df[feature_df['split'] != 'test']
-    result_df = pd.concat([non_test, balanced_test])
-    
-    print(f"New test set size: {len(balanced_test)}")
-    print(f"Class distribution in balanced test set: "
-          f"Evil={balanced_test['evil'].sum()}, "
-          f"Benign={len(balanced_test) - balanced_test['evil'].sum()}")
-    
-    return result_df
-
-
 def save_datasets(feature_df: pd.DataFrame, output_file: str) -> None:
     """
     Save the processed datasets.
@@ -395,7 +355,6 @@ def prepare_cluster_data(
     test_file: str, 
     valid_file: str, 
     output_file: str = f"preprocessed{os.sep}prepared_data_cluster.csv", 
-    balance_classes_flag: bool = False, 
     include_feature_importance: bool = True
 ) -> Tuple[pd.DataFrame, Optional[Dict[str, float]]]:
     """
@@ -406,7 +365,6 @@ def prepare_cluster_data(
         test_file: Path to testing split (CSV)
         valid_file: Path to validation split (CSV)
         output_file: Optional path to save processed data CSV
-        balance_classes_flag: Whether to balance classes in the final dataset
         include_feature_importance: Whether to include feature importance weights
 
     Returns:
@@ -470,10 +428,6 @@ def prepare_cluster_data(
             # 11. Weight features by importance
             feature_df = weight_features_by_importance(feature_df, feature_importance)
         
-        # 12. Balance classes if requested
-        if balance_classes_flag:
-            feature_df = balance_classes(feature_df)
-    
     # 13. Save datasets
     save_datasets(feature_df, output_file)
     
@@ -488,7 +442,6 @@ if __name__ == "__main__":
         f"data{os.sep}labelled_testing_data.csv",
         f"data{os.sep}labelled_validation_data.csv",
         output_file=f"preprocessed{os.sep}prepared_data_cluster.csv",
-        balance_classes_flag=False,  # Set to True for balanced classes
         include_feature_importance=True  # Set to False to skip feature importance
     )
     end = time.time()

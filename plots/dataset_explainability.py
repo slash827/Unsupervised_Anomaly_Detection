@@ -4,13 +4,14 @@ import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, plot_tree, export_text
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.model_selection import train_test_split
+
 import os, glob
 import warnings
 import time
 from collections import defaultdict
 import seaborn as sns
 
-from preprocess_beth import load_and_preprocess_beth_data
+from utils import load_and_preprocess_beth_data
 
 warnings.filterwarnings('ignore')
 
@@ -186,6 +187,7 @@ def visualize_tree(dt_classifier, feature_names, output_file='decision_tree.png'
     else:
         print("\nTree is too deep to display as text. Please refer to the visualization.")
 
+
 def print_decision_paths(dt_classifier, feature_names, target_col='evil'):
     """
     Print the decision paths from the root to each leaf in the tree.
@@ -287,7 +289,8 @@ def print_decision_paths(dt_classifier, feature_names, target_col='evil'):
             print("  Root node (no decisions)")
         
         print(f"  Class Distribution: {class_dist}")
-       
+
+
 def analyze_feature_thresholds(dt_classifier, feature_names):
     """
     Analyze the thresholds used for each feature in the decision tree.
@@ -368,6 +371,7 @@ def visualize_confusion_matrix(y_test, y_pred, output_file='confusion_matrix.png
     plt.tight_layout()
     plt.savefig(output_file, dpi=300)
     print(f"\nConfusion matrix visualization saved to {output_file}")
+
 
 def visualize_feature_importance(feature_importance, output_file='feature_importance.png'):
     """

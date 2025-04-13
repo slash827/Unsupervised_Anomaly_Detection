@@ -10,7 +10,7 @@ import warnings
 import time
 warnings.filterwarnings('ignore')
 
-from preprocess_beth import load_and_preprocess_beth_data
+from utils import load_and_preprocess_beth_data
 
 # Set plot style and figure size for better visualization
 plt.style.use('seaborn-v0_8-whitegrid')
