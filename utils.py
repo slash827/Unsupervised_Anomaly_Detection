@@ -2,10 +2,101 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import silhouette_score
+
+import os, glob
+import zipfile
+import requests
+from tqdm import tqdm
+import time
 import warnings
 warnings.filterwarnings('ignore')
 
+
+def check_and_download_beth_data(url):
+    """
+    Checks if BETH CSV files exist in the 'data' directory.
+    If not, downloads them from Google Drive and extracts them.
+    
+    Returns:
+        list: List of paths to the CSV files ending with 'data.csv'
+    """
+    # Make sure we're in the same directory as this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(script_dir)
+    
+    # Create data directory if it doesn't exist
+    data_dir = os.path.join(script_dir, "data")
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+        print(f"Created directory: {data_dir}")
+    
+    # Check for CSV files ending with 'data.csv'
+    csv_files = glob.glob(f"data{os.sep}*data.csv")
+    
+    if len(csv_files) >= 3:
+        print(f"Found {len(csv_files)} BETH data files: {[os.path.basename(f) for f in csv_files]}")
+        return csv_files
+    
+    print(f"Insufficient BETH data files found (only {len(csv_files)}). Downloading from DropBox...")
+    
+    # DropBox URL and local path for the zip file
+    dropbox_url = url
+    local_zip_path = os.path.join(data_dir, "beth_dataset.zip")
+    
+    try:
+        print(f"Downloading BETH dataset from Dropbox url: {dropbox_url}")
+        response = requests.get(dropbox_url, stream=True)
+        response.raise_for_status()  # Raise exception for HTTP errors
+        
+        # Get total file size for progress bar
+        total_size = int(response.headers.get('content-length', 0))
+        
+        # Download with progress bar
+        with open(local_zip_path, 'wb') as f, tqdm(
+                desc="Downloading",
+                total=total_size,
+                unit='iB',
+                unit_scale=True,
+                unit_divisor=1024,
+        ) as bar:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    size = f.write(chunk)
+                    bar.update(size)
+        
+        print(f"Download complete. Extracting files to {data_dir}...")
+        
+        # Extract the zip file
+        with zipfile.ZipFile(local_zip_path, 'r') as zip_ref:
+            zip_ref.extractall(data_dir)
+        
+        print("Extraction complete.")
+        
+        # Clean up the zip file
+        os.remove(local_zip_path)
+        print(f"Removed zip file: {local_zip_path}")
+        
+        # Check if we now have the files
+        csv_files = glob.glob(f"data{os.sep}*data.csv")
+        if len(csv_files) >= 3:
+            print(f"Successfully downloaded {len(csv_files)} BETH data files: {[os.path.basename(f) for f in csv_files]}")
+        else:
+            print(f"Warning: Still only found {len(csv_files)} files after download: {[os.path.basename(f) for f in csv_files]}")
+            
+            # Try searching with a more general pattern in case file naming is different
+            all_csv_files = glob.glob(f"data{os.sep}*.csv")
+            print(f"Found {len(all_csv_files)} total CSV files: {[os.path.basename(f) for f in all_csv_files]}")
+            
+            if len(all_csv_files) > len(csv_files):
+                print("Using all CSV files found instead of just those ending with 'data.csv'")
+                csv_files = all_csv_files
+        
+        return csv_files
+        
+    except Exception as e:
+        print(f"Error during download: {e}")
+    return csv_files  # Return whatever files we have
+    
 
 def load_and_preprocess_beth_data(csv_files, file_path):
     """
