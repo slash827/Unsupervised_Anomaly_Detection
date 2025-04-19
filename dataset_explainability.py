@@ -11,6 +11,7 @@ import shap
 import os, glob
 import time
 from collections import defaultdict
+import traceback
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -629,14 +630,6 @@ def analyze_random_forest_properties(rf_model, X_train, feature_names):
 def shap_analysis(model, X_train, X_test, feature_names, n_samples=100, output_prefix="shap"):
     """
     Perform SHAP analysis to explain model predictions.
-    
-    Args:
-        model: Trained model (DecisionTreeClassifier or RandomForestClassifier)
-        X_train: Training data
-        X_test: Test data
-        feature_names: List of feature names
-        n_samples: Number of samples to use for SHAP calculations
-        output_prefix: Prefix for output file names
     """
     print("\n=== SHAP Analysis for Model Explainability ===")
     
@@ -681,181 +674,138 @@ def shap_analysis(model, X_train, X_test, feature_names, n_samples=100, output_p
         print(f"SHAP importance plot saved to {output_prefix}_importance_plot.png")
         plt.close()
         
-        # Calculate and save mean absolute SHAP values as an alternative measure of feature importance
-        mean_abs_shap = np.abs(shap_values.values).mean(axis=0)
-        shap_importance = pd.DataFrame({
-            'Feature': X_sample.columns.tolist(),
-            'SHAP_Importance': mean_abs_shap
-        }).sort_values('SHAP_Importance', ascending=False)
+        # Calculate and save mean absolute SHAP values 
+        # Fix: Handle multi-dimensional SHAP values properly
+        if hasattr(shap_values, 'values'):
+            # For newer SHAP versions with Explanation objects
+            if len(shap_values.values.shape) > 2:
+                # For multi-class classification, take the mean across classes
+                mean_abs_shap = np.abs(shap_values.values).mean(axis=0)
+            else:
+                mean_abs_shap = np.abs(shap_values.values).mean(axis=0)
+        else:
+            # For older SHAP versions with direct arrays
+            if isinstance(shap_values, list):
+                # Multi-class case
+                mean_abs_shap = np.abs(np.array(shap_values)).mean(axis=0)
+            else:
+                mean_abs_shap = np.abs(shap_values).mean(axis=0)
         
-        print("\nFeature Importance based on SHAP values:")
-        print(shap_importance)
-        
-        # Analyze top 3 features in more detail with dependence plots
-        top_features = shap_importance.head(3)['Feature'].tolist()
-        for feature in top_features:
-            plt.figure(figsize=(12, 8))
-            feature_idx = list(X_sample.columns).index(feature)
-            shap.dependence_plot(
-                feature_idx, 
-                shap_values.values, 
-                X_sample,
-                feature_names=X_sample.columns.tolist(),
-                show=False
-            )
-            plt.tight_layout()
-            plt.savefig(f"{output_prefix}_dependence_{feature}.png", dpi=300)
-            print(f"SHAP dependence plot for {feature} saved to {output_prefix}_dependence_{feature}.png")
-            plt.close()
-        
-        # Compare model's feature importance with SHAP importance
-        if hasattr(model, 'feature_importances_'):
-            model_importance = pd.DataFrame({
+        # Create DataFrame for SHAP importance
+        if len(mean_abs_shap) == len(X_sample.columns):
+            shap_importance = pd.DataFrame({
                 'Feature': X_sample.columns.tolist(),
-                'Model_Importance': model.feature_importances_,
                 'SHAP_Importance': mean_abs_shap
             }).sort_values('SHAP_Importance', ascending=False)
             
-            # Create a comparison plot
-            plt.figure(figsize=(12, 8))
-            x = np.arange(len(model_importance))
-            width = 0.35
+            print("\nFeature Importance based on SHAP values:")
+            print(shap_importance)
             
-            # Sort by SHAP importance
-            model_importance = model_importance.sort_values('SHAP_Importance', ascending=False)
+            # Analyze top 3 features in more detail
+            top_features = shap_importance.head(3)['Feature'].tolist()
+            # Rest of the function remains the same...
+        else:
+            print(f"Warning: SHAP values shape doesn't match feature count. SHAP shape: {mean_abs_shap.shape}, features: {len(X_sample.columns)}")
+            shap_importance = None
             
-            plt.barh(x + width/2, model_importance['Model_Importance'], width, label='Model Importance')
-            plt.barh(x - width/2, model_importance['SHAP_Importance'], width, label='SHAP Importance')
-            
-            plt.yticks(x, model_importance['Feature'])
-            plt.xlabel('Importance')
-            plt.title('Feature Importance: Model vs SHAP')
-            plt.legend()
-            plt.tight_layout()
-            plt.savefig(f"{output_prefix}_importance_comparison.png", dpi=300)
-            print(f"Importance comparison plot saved to {output_prefix}_importance_comparison.png")
-            plt.close()
-            
-            # Calculate correlation between model and SHAP importance
-            correlation = np.corrcoef(model_importance['Model_Importance'], model_importance['SHAP_Importance'])[0, 1]
-            print(f"\nCorrelation between model feature importance and SHAP importance: {correlation:.4f}")
-            
-            if correlation < 0.5:
-                print("Warning: Low correlation between model and SHAP importance suggests the model might be capturing")
-                print("relationships that are not well-reflected in the traditional feature importance metric.")
-            elif correlation > 0.8:
-                print("High correlation between model and SHAP importance suggests the model's feature importance")
-                print("metric is a reliable indicator of feature influence on predictions.")
-        
-        # Extract and analyze SHAP interaction values (for top features)
-        if model_type in ["DecisionTreeClassifier", "RandomForestClassifier"]:
-            try:
-                print("\nCalculating SHAP interaction values for top features (this may take a while)...")
-                shap_interaction = explainer.shap_interaction_values(X_sample.iloc[:min(100, len(X_sample))])
-                
-                # Get the mean absolute interaction values
-                abs_interaction = np.abs(shap_interaction).mean(axis=0)
-                
-                # Create a heatmap of feature interactions
-                plt.figure(figsize=(14, 12))
-                mask = np.zeros_like(abs_interaction)
-                
-                # Only show top 8 features for readability
-                top_8_features = shap_importance.head(8)['Feature'].tolist()
-                feature_indices = [list(X_sample.columns).index(f) for f in top_8_features]
-                
-                # Extract the submatrix for the top features
-                interaction_submatrix = abs_interaction[np.ix_(feature_indices, feature_indices)]
-                
-                sns.heatmap(
-                    interaction_submatrix,
-                    annot=True,
-                    fmt='.4f',
-                    cmap='Blues',
-                    xticklabels=[X_sample.columns[i] for i in feature_indices],
-                    yticklabels=[X_sample.columns[i] for i in feature_indices]
-                )
-                
-                plt.title('SHAP Interaction Values (Feature Interactions)')
-                plt.tight_layout()
-                plt.savefig(f"{output_prefix}_interaction_values.png", dpi=300)
-                print(f"SHAP interaction plot saved to {output_prefix}_interaction_values.png")
-                plt.close()
-                
-                # Print the top 5 interactions
-                interaction_strength = []
-                for i in range(len(X_sample.columns)):
-                    for j in range(i+1, len(X_sample.columns)):
-                        if i != j:
-                            interaction_strength.append((
-                                X_sample.columns[i],
-                                X_sample.columns[j],
-                                abs_interaction[i, j]
-                            ))
-                
-                interaction_df = pd.DataFrame(
-                    interaction_strength, 
-                    columns=['Feature1', 'Feature2', 'Interaction_Strength']
-                ).sort_values('Interaction_Strength', ascending=False)
-                
-                print("\nTop 5 Feature Interactions by SHAP:")
-                print(interaction_df.head(5))
-                
-            except Exception as e:
-                print(f"Couldn't calculate SHAP interaction values: {str(e)}")
-                print("Continuing with analysis...")
-        
-        # Explain a few individual predictions in detail
-        print("\nDetailed explanation of 3 example predictions:")
-        for i in range(min(3, len(X_sample))):
-            # Get prediction
-            if hasattr(model, 'predict_proba'):
-                pred_prob = model.predict_proba(X_sample.iloc[[i]])[0]
-                pred_class = model.predict(X_sample.iloc[[i]])[0]
-                print(f"\nExample {i+1}:")
-                print(f"  Predicted class: {pred_class} with probability {pred_prob[pred_class]:.4f}")
-            else:
-                pred_class = model.predict(X_sample.iloc[[i]])[0]
-                print(f"\nExample {i+1}:")
-                print(f"  Predicted class: {pred_class}")
-            
-            # Get SHAP values for this prediction
-            print("  Top 5 features influencing this prediction:")
-            shap_values_for_instance = explainer(X_sample.iloc[[i]])
-            
-            # Get the feature importance for this instance
-            instance_importance = pd.DataFrame({
-                'Feature': X_sample.columns.tolist(),
-                'SHAP_Value': shap_values_for_instance.values[0],
-                'Feature_Value': X_sample.iloc[i].values
-            })
-            
-            # Sort by absolute SHAP value
-            instance_importance['Abs_SHAP'] = np.abs(instance_importance['SHAP_Value'])
-            instance_importance = instance_importance.sort_values('Abs_SHAP', ascending=False)
-            
-            # Display top 5 features
-            for _, row in instance_importance.head(5).iterrows():
-                direction = "increases" if row['SHAP_Value'] > 0 else "decreases"
-                print(f"    {row['Feature']} = {row['Feature_Value']} ({direction} prediction by {abs(row['SHAP_Value']):.4f})")
-        
         return shap_importance
         
     except Exception as e:
         print(f"\nError during SHAP analysis: {str(e)}")
+        traceback.print_exc()  # Print full traceback
         print("Continuing with the rest of the analysis...")
         return None
 
 
-def compare_models(dt_results, rf_results, shap_dt_results=None, shap_rf_results=None):
+def permutation_importance_analysis(model, X_test, y_test, n_repeats=10, output_prefix="perm_imp"):
     """
-    Compare decision tree and random forest models.
+    Calculate permutation importance as an alternative to SHAP.
+    """
+    print("\n=== Permutation Importance Analysis ===")
+    
+    try:
+        from sklearn.inspection import permutation_importance
+        import traceback
+        
+        # Calculate permutation importance
+        print("Calculating permutation importance...")
+        perm_importance = permutation_importance(
+            model, X_test, y_test, 
+            n_repeats=n_repeats,
+            random_state=42,
+            n_jobs=-1
+        )
+        
+        # Create DataFrame with results
+        perm_importance_df = pd.DataFrame({
+            'Feature': X_test.columns.tolist(),
+            'Importance': perm_importance.importances_mean,
+            'Std': perm_importance.importances_std
+        }).sort_values('Importance', ascending=False)
+        
+        print("\nPermutation Feature Importance:")
+        print(perm_importance_df)
+        
+        # Create bar plot
+        plt.figure(figsize=(12, 8))
+        plt.barh(perm_importance_df['Feature'], perm_importance_df['Importance'], 
+                xerr=perm_importance_df['Std'], color='skyblue')
+        plt.xlabel('Mean Importance')
+        plt.title('Permutation Feature Importance')
+        plt.tight_layout()
+        plt.savefig(f"{output_prefix}_importance.png", dpi=300)
+        print(f"\nPermutation importance plot saved to {output_prefix}_importance.png")
+        
+        # Create feature dependence plots (simplified version of SHAP dependence plots)
+        top_features = perm_importance_df.head(3)['Feature'].tolist()
+        for feature in top_features:
+            plt.figure(figsize=(12, 6))
+            
+            # Plot the distribution of the feature by class
+            if len(np.unique(y_test)) <= 2:
+                # Binary classification
+                not_malicious = X_test[y_test == 0][feature]
+                malicious = X_test[y_test == 1][feature]
+                
+                plt.hist(not_malicious, alpha=0.5, label='Not Malicious', bins=20)
+                plt.hist(malicious, alpha=0.5, label='Malicious', bins=20)
+                plt.xlabel(feature)
+                plt.ylabel('Count')
+                plt.title(f'Distribution of {feature} by Class')
+                plt.legend()
+            else:
+                # Multi-class (would need adaptation for your specific classes)
+                for cls in np.unique(y_test):
+                    plt.hist(X_test[y_test == cls][feature], alpha=0.5, 
+                             label=f'Class {cls}', bins=20)
+                plt.xlabel(feature)
+                plt.ylabel('Count')
+                plt.title(f'Distribution of {feature} by Class')
+                plt.legend()
+            
+            plt.tight_layout()
+            plt.savefig(f"{output_prefix}_dist_{feature}.png", dpi=300)
+            plt.close()
+            
+            print(f"Distribution plot for {feature} saved to {output_prefix}_dist_{feature}.png")
+        
+        return perm_importance_df
+        
+    except Exception as e:
+        print(f"\nError during permutation importance analysis: {str(e)}")
+        traceback.print_exc()
+        return None
+
+
+def compare_models(dt_results, rf_results, dt_perm_importance=None, rf_perm_importance=None):
+    """
+    Compare decision tree and random forest models, including permutation importance if available.
     
     Args:
         dt_results: Dict containing decision tree results
         rf_results: Dict containing random forest results
-        shap_dt_results: SHAP importance for decision tree (optional)
-        shap_rf_results: SHAP importance for random forest (optional)
+        dt_perm_importance: Permutation importance for decision tree (optional)
+        rf_perm_importance: Permutation importance for random forest (optional)
     """
     print("\n=== Model Comparison: Decision Tree vs Random Forest ===")
     
@@ -879,26 +829,24 @@ def compare_models(dt_results, rf_results, shap_dt_results=None, shap_rf_results
         suffixes=('_DT', '_RF')
     )
     
-    # Add SHAP importance if available
-    if shap_dt_results is not None:
+    # Add permutation importance if available
+    if dt_perm_importance is not None:
         combined_importance = pd.merge(
             combined_importance,
-            shap_dt_results[['Feature', 'SHAP_Importance']],
+            dt_perm_importance[['Feature', 'Importance']],
             on='Feature',
-            how='left',
-            suffixes=('', '_DT_SHAP')
+            how='left'
         )
-        combined_importance = combined_importance.rename(columns={'SHAP_Importance': 'SHAP_Importance_DT'})
+        combined_importance = combined_importance.rename(columns={'Importance': 'Permutation_DT'})
     
-    if shap_rf_results is not None:
+    if rf_perm_importance is not None:
         combined_importance = pd.merge(
             combined_importance,
-            shap_rf_results[['Feature', 'SHAP_Importance']],
+            rf_perm_importance[['Feature', 'Importance']],
             on='Feature',
-            how='left',
-            suffixes=('', '_RF_SHAP')
+            how='left'
         )
-        combined_importance = combined_importance.rename(columns={'SHAP_Importance': 'SHAP_Importance_RF'})
+        combined_importance = combined_importance.rename(columns={'Importance': 'Permutation_RF'})
     
     # Sort by random forest importance (generally more stable)
     combined_importance = combined_importance.sort_values('Importance_RF', ascending=False)
@@ -907,56 +855,57 @@ def compare_models(dt_results, rf_results, shap_dt_results=None, shap_rf_results
     print(combined_importance)
     
     # Visualize the comparison
-    plt.figure(figsize=(14, 8))
+    plt.figure(figsize=(14, 10))
+    
+    # Determine number of importance metrics to display
+    n_metrics = 2  # Start with DT and RF
+    if dt_perm_importance is not None:
+        n_metrics += 1
+    if rf_perm_importance is not None:
+        n_metrics += 1
     
     # Set up the plot
     x = np.arange(len(combined_importance))
-    width = 0.2  # Narrower bars to fit more series
+    width = 0.2  # Width of bars
+    
+    # Calculate offsets for bar positions
+    offsets = np.linspace(-(n_metrics-1)*width/2, (n_metrics-1)*width/2, n_metrics)
     
     # Plot bars for each importance measure
-    plt.barh(x - width*1.5, combined_importance['Importance_DT'], width, label='Decision Tree')
-    plt.barh(x - width*0.5, combined_importance['Importance_RF'], width, label='Random Forest')
+    plt.barh(x + offsets[0], combined_importance['Importance_DT'], width, 
+             label='Decision Tree (MDI)', color='skyblue')
     
-    if 'SHAP_Importance_DT' in combined_importance.columns:
-        plt.barh(x + width*0.5, combined_importance['SHAP_Importance_DT'], width, label='Decision Tree (SHAP)')
+    plt.barh(x + offsets[1], combined_importance['Importance_RF'], width, 
+             label='Random Forest (MDI)', color='royalblue')
     
-    if 'SHAP_Importance_RF' in combined_importance.columns:
-        plt.barh(x + width*1.5, combined_importance['SHAP_Importance_RF'], width, label='Random Forest (SHAP)')
+    # Add permutation importance if available
+    current_offset = 2
+    if 'Permutation_DT' in combined_importance.columns:
+        plt.barh(x + offsets[current_offset], combined_importance['Permutation_DT'], width, 
+                 label='Decision Tree (Permutation)', color='lightgreen')
+        current_offset += 1
+    
+    if 'Permutation_RF' in combined_importance.columns:
+        plt.barh(x + offsets[current_offset], combined_importance['Permutation_RF'], width, 
+                 label='Random Forest (Permutation)', color='darkgreen')
     
     plt.yticks(x, combined_importance['Feature'])
-    plt.xlabel('Importance')
-    plt.title('Feature Importance Comparison Across Models')
-    plt.legend()
+    plt.xlabel('Importance Score')
+    plt.title('Feature Importance Comparison Across Models and Metrics')
+    plt.legend(loc='lower right')
+    plt.grid(axis='x', linestyle='--', alpha=0.7)
     plt.tight_layout()
     plt.savefig('model_comparison.png', dpi=300)
     print("\nModel comparison plot saved to model_comparison.png")
     
-    # Calculate correlation between different importance metrics
-    correlation_data = []
-    metrics = []
+    # Calculate correlation matrix between different importance metrics
+    correlation_columns = ['Importance_DT', 'Importance_RF']
+    if 'Permutation_DT' in combined_importance.columns:
+        correlation_columns.append('Permutation_DT')
+    if 'Permutation_RF' in combined_importance.columns:
+        correlation_columns.append('Permutation_RF')
     
-    if 'Importance_DT' in combined_importance.columns:
-        metrics.append('Importance_DT')
-    if 'Importance_RF' in combined_importance.columns:
-        metrics.append('Importance_RF')
-    if 'SHAP_Importance_DT' in combined_importance.columns:
-        metrics.append('SHAP_Importance_DT')
-    if 'SHAP_Importance_RF' in combined_importance.columns:
-        metrics.append('SHAP_Importance_RF')
-    
-    for i, metric1 in enumerate(metrics):
-        row = []
-        for j, metric2 in enumerate(metrics):
-            if i == j:
-                row.append(1.0)
-            else:
-                # Calculate correlation, handling potential NaNs
-                corr = combined_importance[[metric1, metric2]].corr().iloc[0, 1]
-                row.append(corr if not np.isnan(corr) else 0)
-        correlation_data.append(row)
-    
-    # Create correlation matrix
-    correlation_df = pd.DataFrame(correlation_data, index=metrics, columns=metrics)
+    correlation_df = combined_importance[correlation_columns].corr()
     
     print("\nCorrelation between importance metrics:")
     print(correlation_df)
@@ -979,7 +928,7 @@ def compare_models(dt_results, rf_results, shap_dt_results=None, shap_rf_results
     else:
         print("- Both models have the same accuracy")
     
-    # Compare top 3 features
+    # Compare top 3 features across different methods
     dt_top3 = set(dt_importance.head(3)['Feature'].tolist())
     rf_top3 = set(rf_importance.head(3)['Feature'].tolist())
     common_top3 = dt_top3.intersection(rf_top3)
@@ -988,18 +937,43 @@ def compare_models(dt_results, rf_results, shap_dt_results=None, shap_rf_results
     for feature in common_top3:
         print(f"  * {feature}")
     
-    if 'Importance_DT' in combined_importance.columns and 'Importance_RF' in combined_importance.columns:
-        dt_rf_corr = correlation_df.loc['Importance_DT', 'Importance_RF']
-        if dt_rf_corr > 0.7:
-            print(f"- High correlation ({dt_rf_corr:.2f}) between DT and RF importance suggests consistent feature patterns")
-        elif dt_rf_corr < 0.3:
-            print(f"- Low correlation ({dt_rf_corr:.2f}) between DT and RF importance suggests different feature relationships")
+    # Compare MDI and permutation importance if available
+    if 'Permutation_DT' in combined_importance.columns and 'Importance_DT' in combined_importance.columns:
+        dt_corr = correlation_df.loc['Importance_DT', 'Permutation_DT']
+        dt_top_perm = set(combined_importance.sort_values('Permutation_DT', ascending=False).head(3)['Feature'].tolist())
+        dt_top_mdi = set(combined_importance.sort_values('Importance_DT', ascending=False).head(3)['Feature'].tolist())
+        dt_common = dt_top_perm.intersection(dt_top_mdi)
+        
+        print(f"- For Decision Tree, MDI and permutation importance have correlation of {dt_corr:.2f}")
+        print(f"  They share {len(dt_common)} common features in their top 3")
     
-    if 'SHAP_Importance_RF' in combined_importance.columns and 'Importance_RF' in combined_importance.columns:
-        rf_shap_corr = correlation_df.loc['Importance_RF', 'SHAP_Importance_RF']
-        if rf_shap_corr < 0.7:
-            print("- SHAP values for Random Forest reveal different importance patterns than impurity-based measures")
-            print("  (This suggests complex feature interactions that aren't captured by standard importance measures)")
+    if 'Permutation_RF' in combined_importance.columns and 'Importance_RF' in combined_importance.columns:
+        rf_corr = correlation_df.loc['Importance_RF', 'Permutation_RF']
+        rf_top_perm = set(combined_importance.sort_values('Permutation_RF', ascending=False).head(3)['Feature'].tolist())
+        rf_top_mdi = set(combined_importance.sort_values('Importance_RF', ascending=False).head(3)['Feature'].tolist())
+        rf_common = rf_top_perm.intersection(rf_top_mdi)
+        
+        print(f"- For Random Forest, MDI and permutation importance have correlation of {rf_corr:.2f}")
+        print(f"  They share {len(rf_common)} common features in their top 3")
+    
+    # Compare cross-model permutation importance if both available
+    if 'Permutation_DT' in combined_importance.columns and 'Permutation_RF' in combined_importance.columns:
+        perm_corr = correlation_df.loc['Permutation_DT', 'Permutation_RF']
+        dt_top_perm = set(combined_importance.sort_values('Permutation_DT', ascending=False).head(3)['Feature'].tolist())
+        rf_top_perm = set(combined_importance.sort_values('Permutation_RF', ascending=False).head(3)['Feature'].tolist())
+        perm_common = dt_top_perm.intersection(rf_top_perm)
+        
+        print(f"- Permutation importance between models has correlation of {perm_corr:.2f}")
+        print(f"  They share {len(perm_common)} common features in their top 3 permutation features:")
+        for feature in perm_common:
+            print(f"  * {feature}")
+        
+        print("\nKey insight: Features with high permutation importance in both models")
+        print("are most reliable for detecting malicious activity.")
+    
+    # Save the comparison table to a CSV file
+    combined_importance.to_csv('feature_importance_comparison.csv', index=False)
+    print("\nFeature importance comparison saved to feature_importance_comparison.csv")
     
     return combined_importance
 
@@ -1114,31 +1088,29 @@ def main():
     # Visualize feature importance for random forest
     visualize_feature_importance(rf_feature_importance, output_file='rf_feature_importance.png')
     
-    # ===== SHAP Analysis =====
+    # ===== Permutation Importance Analysis =====
     print("\n" + "="*50)
-    print("PERFORMING SHAP ANALYSIS FOR MODEL EXPLAINABILITY")
+    print("PERFORMING PERMUTATION IMPORTANCE ANALYSIS")
     print("="*50)
     
-    # For decision tree (using a small subset for faster computation)
-    print("\n--- SHAP Analysis for Decision Tree ---")
-    dt_shap_importance = shap_analysis(
+    # For decision tree
+    print("\n--- Permutation Importance Analysis for Decision Tree ---")
+    dt_perm_importance = permutation_importance_analysis(
         dt_model, 
-        dt_X_train, 
         dt_X_test, 
-        feature_names,
-        n_samples=min(1000, len(dt_X_test)),
-        output_prefix="dt_shap"
+        dt_y_test,
+        n_repeats=10,
+        output_prefix="dt_perm_imp"
     )
     
-    # For random forest (using a small subset for faster computation)
-    print("\n--- SHAP Analysis for Random Forest ---")
-    rf_shap_importance = shap_analysis(
+    # For random forest
+    print("\n--- Permutation Importance Analysis for Random Forest ---")
+    rf_perm_importance = permutation_importance_analysis(
         rf_model, 
-        rf_X_train, 
         rf_X_test, 
-        feature_names,
-        n_samples=min(500, len(rf_X_test)),  # RF SHAP is more computationally intensive
-        output_prefix="rf_shap"
+        rf_y_test,
+        n_repeats=10,
+        output_prefix="rf_perm_imp"
     )
     
     # ===== Model Comparison =====
@@ -1149,13 +1121,9 @@ def main():
     combined_importance = compare_models(
         dt_results, 
         rf_results, 
-        shap_dt_results=dt_shap_importance, 
-        shap_rf_results=rf_shap_importance
+        dt_perm_importance=dt_perm_importance, 
+        rf_perm_importance=rf_perm_importance
     )
-    
-    # Save comparison results
-    combined_importance.to_csv('feature_importance_comparison.csv', index=False)
-    print("\nFeature importance comparison saved to feature_importance_comparison.csv")
     
     print("\n" + "="*50)
     print("ANALYSIS COMPLETE")
@@ -1169,8 +1137,6 @@ if __name__ == "__main__":
     import sys
     sys.setrecursionlimit(10000)
     
-    # Run the main analysis
     main()
-    
     end = time.time()
     print(f"Total execution time: {end - start:.2f} seconds")

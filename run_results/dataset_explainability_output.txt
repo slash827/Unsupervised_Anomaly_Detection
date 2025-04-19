@@ -1,3 +1,4 @@
+GitHub/Unsupervised_Anomaly_Detection/dataset_explainability.py
 Loading data from C:\Users\gilad\Documents\GitHub\Unsupervised_Anomaly_Detection\data...
 Original dataset shape: (1141078, 16)
 Columns in the dataset: ['timestamp', 'processId', 'threadId', 'parentProcessId', 'userId', 'mountNamespace', 'processName', 'hostName', 'eventId', 'eventName', 'stackAddresses', 'argsNum', 'returnValue', 'args', 'sus', 'evil']
@@ -48,18 +49,18 @@ Not Malicious       1.00      1.00      1.00     25835
 Confusion Matrix:
                       Predicted Not Malicious  Predicted Malicious
 Actual Not Malicious                    25827                    8
-Actual Malicious                           30                 4135
+Actual Malicious                           32                 4133
 
 Feature Importance:
                    Feature  Importance
-2             isSystemUser    0.956764
-1    isSystemParentProcess    0.041450
-7                      sus    0.001255
-4                  eventId    0.000279
-5                  argsNum    0.000252
+2             isSystemUser    0.958541
+1    isSystemParentProcess    0.039518
+7                      sus    0.001089
+5                  argsNum    0.000339
+4                  eventId    0.000325
+6           returnValueCat    0.000188
 0          isSystemProcess    0.000000
 3  isDefaultMountNamespace    0.000000
-6           returnValueCat    0.000000
 
 Confusion matrix visualization saved to dt_confusion_matrix.png
 
@@ -76,13 +77,13 @@ Testing set size: 30000
 
 Training a random forest with max_depth=10...
 
-Accuracy: 0.9989
+Accuracy: 0.9986
 
 Classification Report:
                precision    recall  f1-score   support
 
 Not Malicious       1.00      1.00      1.00     25835
-    Malicious       1.00      0.99      1.00      4165
+    Malicious       1.00      0.99      0.99      4165
 
      accuracy                           1.00     30000
     macro avg       1.00      1.00      1.00     30000
@@ -92,46 +93,46 @@ Not Malicious       1.00      1.00      1.00     25835
 Confusion Matrix:
                       Predicted Not Malicious  Predicted Malicious
 Actual Not Malicious                    25828                    7
-Actual Malicious                           27                 4138
+Actual Malicious                           35                 4130
 
 Feature Importance:
                    Feature  Importance
-2             isSystemUser    0.458436
-7                      sus    0.257573
-6           returnValueCat    0.151700
-5                  argsNum    0.052109
-4                  eventId    0.045588
-1    isSystemParentProcess    0.021374
-3  isDefaultMountNamespace    0.013028
-0          isSystemProcess    0.000192
+2             isSystemUser    0.459661
+7                      sus    0.271718
+6           returnValueCat    0.102540
+4                  eventId    0.070091
+5                  argsNum    0.059666
+1    isSystemParentProcess    0.024179
+3  isDefaultMountNamespace    0.011972
+0          isSystemProcess    0.000173
 
 === Random Forest Properties ===
 
 Mean Decrease in Impurity (MDI) Feature Importance:
                    Feature  MDI_Importance
-2             isSystemUser        0.458436
-7                      sus        0.257573
-6           returnValueCat        0.151700
-5                  argsNum        0.052109
-4                  eventId        0.045588
-1    isSystemParentProcess        0.021374
-3  isDefaultMountNamespace        0.013028
-0          isSystemProcess        0.000192
+2             isSystemUser        0.459661
+7                      sus        0.271718
+6           returnValueCat        0.102540
+4                  eventId        0.070091
+5                  argsNum        0.059666
+1    isSystemParentProcess        0.024179
+3  isDefaultMountNamespace        0.011972
+0          isSystemProcess        0.000173
 
 Random Forest consists of 100 trees
-Tree depth: min=8, max=10, avg=9.8
-Features used per tree: min=6, max=8, avg=6.9
+Tree depth: min=9, max=10, avg=9.9
+Features used per tree: min=6, max=8, avg=7.1
 
 Feature usage across trees (percentage of trees using each feature):
                    Feature  Usage_Pct
-3                  eventId     1125.0
-4                  argsNum      674.0
-2    isSystemParentProcess      666.0
-0           returnValueCat      561.0
-1             isSystemUser      302.0
-6                      sus      253.0
-5  isDefaultMountNamespace       99.0
-7          isSystemProcess       25.0
+3                  eventId     1398.0
+5                  argsNum      774.0
+2    isSystemParentProcess      660.0
+0           returnValueCat      573.0
+1             isSystemUser      328.0
+4                      sus      302.0
+6  isDefaultMountNamespace      111.0
+7          isSystemProcess       33.0
 
 Feature co-occurrence heatmap saved to feature_co_occurrence.png
 
@@ -142,32 +143,50 @@ Confusion matrix visualization saved to rf_confusion_matrix.png
 Feature importance visualization saved to rf_feature_importance.png
 
 ==================================================
-PERFORMING SHAP ANALYSIS FOR MODEL EXPLAINABILITY
+PERFORMING PERMUTATION IMPORTANCE ANALYSIS
 ==================================================
 
---- SHAP Analysis for Decision Tree ---
+--- Permutation Importance Analysis for Decision Tree ---
 
-=== SHAP Analysis for Model Explainability ===
-Selecting 1000 samples from test data for SHAP analysis...
-Using SHAP TreeExplainer for Decision Tree...
-Calculating SHAP values (this may take a while for large models)...
-SHAP summary plot saved to dt_shap_summary_plot.png
-SHAP importance plot saved to dt_shap_importance_plot.png
+=== Permutation Importance Analysis ===
+Calculating permutation importance...
 
-Error during SHAP analysis: Per-column arrays must each be 1-dimensional
-Continuing with the rest of the analysis...
+Permutation Feature Importance:
+                   Feature  Importance       Std
+2             isSystemUser    0.227550  0.001088
+1    isSystemParentProcess    0.016627  0.000735
+7                      sus    0.000170  0.000090
+5                  argsNum    0.000047  0.000016
+4                  eventId    0.000030  0.000031
+6           returnValueCat    0.000030  0.000023
+0          isSystemProcess    0.000000  0.000000
+3  isDefaultMountNamespace    0.000000  0.000000
 
---- SHAP Analysis for Random Forest ---
+Permutation importance plot saved to dt_perm_imp_importance.png
+Distribution plot for isSystemUser saved to dt_perm_imp_dist_isSystemUser.png
+Distribution plot for isSystemParentProcess saved to dt_perm_imp_dist_isSystemParentProcess.png
+Distribution plot for sus saved to dt_perm_imp_dist_sus.png
 
-=== SHAP Analysis for Model Explainability ===
-Selecting 500 samples from test data for SHAP analysis...
-Using SHAP TreeExplainer for Random Forest...
-Calculating SHAP values (this may take a while for large models)...
-SHAP summary plot saved to rf_shap_summary_plot.png
-SHAP importance plot saved to rf_shap_importance_plot.png
+--- Permutation Importance Analysis for Random Forest ---
 
-Error during SHAP analysis: Per-column arrays must each be 1-dimensional
-Continuing with the rest of the analysis...
+=== Permutation Importance Analysis ===
+Calculating permutation importance...
+
+Permutation Feature Importance:
+                   Feature  Importance       Std
+2             isSystemUser    0.221963  0.001488
+1    isSystemParentProcess    0.016503  0.000703
+4                  eventId    0.000763  0.000172
+7                      sus    0.000277  0.000079
+5                  argsNum    0.000070  0.000053
+0          isSystemProcess    0.000000  0.000000
+6           returnValueCat    0.000000  0.000000
+3  isDefaultMountNamespace   -0.000007  0.000013
+
+Permutation importance plot saved to rf_perm_imp_importance.png
+Distribution plot for isSystemUser saved to rf_perm_imp_dist_isSystemUser.png
+Distribution plot for isSystemParentProcess saved to rf_perm_imp_dist_isSystemParentProcess.png
+Distribution plot for eventId saved to rf_perm_imp_dist_eventId.png
 
 ==================================================
 COMPARING DECISION TREE AND RANDOM FOREST MODELS
@@ -175,39 +194,51 @@ COMPARING DECISION TREE AND RANDOM FOREST MODELS
 
 === Model Comparison: Decision Tree vs Random Forest ===
 Decision Tree Accuracy: 0.9987
-Random Forest Accuracy: 0.9989
-Accuracy Difference: 0.0001
+Random Forest Accuracy: 0.9986
+Accuracy Difference: -0.0001
 
 Feature Importance Comparison:
-                   Feature  Importance_DT  Importance_RF
-0             isSystemUser       0.956764       0.458436
-2                      sus       0.001255       0.257573
-7           returnValueCat       0.000000       0.151700
-4                  argsNum       0.000252       0.052109
-3                  eventId       0.000279       0.045588
-1    isSystemParentProcess       0.041450       0.021374
-6  isDefaultMountNamespace       0.000000       0.013028
-5          isSystemProcess       0.000000       0.000192
+                   Feature  Importance_DT  Importance_RF  Permutation_DT  Permutation_RF
+0             isSystemUser       0.958541       0.459661        0.227550        0.221963
+2                      sus       0.001089       0.271718        0.000170        0.000277
+5           returnValueCat       0.000188       0.102540        0.000030        0.000000
+4                  eventId       0.000325       0.070091        0.000030        0.000763
+3                  argsNum       0.000339       0.059666        0.000047        0.000070
+1    isSystemParentProcess       0.039518       0.024179        0.016627        0.016503
+7  isDefaultMountNamespace       0.000000       0.011972        0.000000       -0.000007
+6          isSystemProcess       0.000000       0.000173        0.000000        0.000000
 
 Model comparison plot saved to model_comparison.png
 
 Correlation between importance metrics:
-               Importance_DT  Importance_RF
-Importance_DT       1.000000       0.833959
-Importance_RF       0.833959       1.000000
+                Importance_DT  Importance_RF  Permutation_DT  Permutation_RF
+Importance_DT        1.000000       0.837968        0.999486        0.999458
+Importance_RF        0.837968       1.000000        0.831945        0.831897
+Permutation_DT       0.999486       0.831945        1.000000        0.999995
+Permutation_RF       0.999458       0.831897        0.999995        1.000000
 
 Importance correlation matrix saved to importance_correlation.png
 
 Summary of Model Comparison:
-- Random Forest outperforms Decision Tree by 0.01% in accuracy
+- Decision Tree outperforms Random Forest by 0.01% in accuracy
 - The models share 2 common features in their top 3:
   * isSystemUser
   * sus
-- High correlation (0.83) between DT and RF importance suggests consistent feature patterns
+- For Decision Tree, MDI and permutation importance have correlation of 1.00
+  They share 3 common features in their top 3
+- For Random Forest, MDI and permutation importance have correlation of 0.83
+  They share 1 common features in their top 3
+- Permutation importance between models has correlation of 1.00
+  They share 2 common features in their top 3 permutation features:
+  * isSystemUser
+  * isSystemParentProcess
+
+Key insight: Features with high permutation importance in both models
+are most reliable for detecting malicious activity.
 
 Feature importance comparison saved to feature_importance_comparison.csv
 
 ==================================================
 ANALYSIS COMPLETE
 ==================================================
-Total execution time: 11.32 seconds
+Total execution time: 17.39 seconds

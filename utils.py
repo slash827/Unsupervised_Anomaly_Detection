@@ -7,7 +7,6 @@ import os, glob
 import zipfile
 import requests
 from tqdm import tqdm
-import time
 import warnings
 warnings.filterwarnings('ignore')
 
