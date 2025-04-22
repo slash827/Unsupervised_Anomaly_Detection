@@ -293,7 +293,7 @@ def train_vae(df, feature_names, encoding_dim=8, max_iter=100, kl_weight=0.5):
     latent_representation = metrics['latent_mean']
     latent_df = pd.DataFrame(
         latent_representation, 
-        columns=[f'latent_{i+1}' for i in range(encoding_dim)]
+        columns=[f'latent_{i+1}' for i in range(latent_representation.shape[1])]  # Dynamic columns
     )
     
     # Add variance information
@@ -849,11 +849,13 @@ def main():
 
     # Load and preprocess data
     df_scaled, feature_names = load_and_preprocess_beth_data(csv_files, data_path)
+    # chosen_idx = np.random.choice(5000, replace=False, size=50)
+    # df_scaled = df_scaled.iloc[chosen_idx]    
     
     # Configure VAE parameters
-    encoding_dim = 8      # Dimension of the latent space
+    encoding_dim = 10     # Dimension of the latent space
     max_iter = 30         # Maximum training iterations
-    kl_weight = 0.5       # Weight for KL divergence loss
+    kl_weight = 0.05      # Weight for KL divergence loss
     
     # Train VAE
     vae, results_df, latent_df, training_history = train_vae(

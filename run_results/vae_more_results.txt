@@ -1,0 +1,153 @@
+Loading data from C:\Users\gilad\Documents\GitHub\Unsupervised_Anomaly_Detection\data...
+Original dataset shape: (1141078, 16)
+Columns in the dataset: ['timestamp', 'processId', 'threadId', 'parentProcessId', 'userId', 'mountNamespace', 'processName', 'hostName', 'eventId', 'eventName', 'stackAddresses', 'argsNum', 'returnValue', 'args', 'sus', 'evil']
+
+Class distribution:
+Benign samples (evil=0, sus=0): 967564 (84.79%)
+Suspicious samples (evil=0, sus=1): 15082 (1.32%)
+Malicious samples (evil=1): 158432 (13.88%)
+
+Creating binary features based on paper recommendations...
+
+Feature value ranges before preprocessing:
+isSystemProcess: Min=0, Max=1, Unique values=2
+isSystemParentProcess: Min=0, Max=1, Unique values=2
+isSystemUser: Min=0, Max=1, Unique values=2
+isDefaultMountNamespace: Min=0, Max=1, Unique values=2
+eventId: Min=2, Max=1010, Unique values=46
+argsNum: Min=0, Max=5, Unique values=6
+returnValueCat: Min=-1, Max=1, Unique values=3
+Processed dataset shape: (1141078, 9)
+
+Creating VAE with encoding dimension 10 and KL weight 0.05...
+
+Training VAE on 774051 benign samples...
+Fitting encoder...
+Iteration 1, loss = 0.00602707
+Iteration 2, loss = 0.00007413
+Iteration 3, loss = 0.00006972
+Iteration 4, loss = 0.00005632
+Iteration 5, loss = 0.00005507
+Iteration 6, loss = 0.00005359
+Iteration 7, loss = 0.00005163
+Iteration 8, loss = 0.00005038
+Iteration 9, loss = 0.00004914
+Iteration 10, loss = 0.00004717
+Iteration 11, loss = 0.00004610
+Iteration 12, loss = 0.00004736
+Iteration 13, loss = 0.00004570
+Training loss did not improve more than tol=0.000100 for 10 consecutive epochs. Stopping.
+Fitting decoder...
+Iteration 1, loss = 0.16852753
+Iteration 2, loss = 0.13319014
+Iteration 3, loss = 0.13083394
+Iteration 4, loss = 0.12999887
+Iteration 5, loss = 0.12940991
+Iteration 6, loss = 0.12898214
+Iteration 7, loss = 0.12872599
+Iteration 8, loss = 0.12842982
+Iteration 9, loss = 0.12824643
+Iteration 10, loss = 0.12807590
+Iteration 11, loss = 0.12789308
+Iteration 12, loss = 0.12778762
+Iteration 13, loss = 0.12769019
+Iteration 14, loss = 0.12759329
+Iteration 15, loss = 0.12745616
+Iteration 16, loss = 0.12739836
+Iteration 17, loss = 0.12739988
+Iteration 18, loss = 0.12728640
+Iteration 19, loss = 0.12732084
+Iteration 20, loss = 0.12721529
+Iteration 21, loss = 0.12717979
+Iteration 22, loss = 0.12716214
+Iteration 23, loss = 0.12711043
+Iteration 24, loss = 0.12710185
+Iteration 25, loss = 0.12702485
+Iteration 26, loss = 0.12704549
+Iteration 27, loss = 0.12691077
+Iteration 28, loss = 0.12692887
+Iteration 29, loss = 0.12688983
+Iteration 30, loss = 0.12690335
+Fine-tuning VAE...
+Epoch 1, Train Loss: 1.173110, Recon Loss: 0.255174, KL Loss: 18.358732
+Epoch 2, Train Loss: 1.172819, Recon Loss: 0.254883, KL Loss: 18.358732
+Epoch 3, Train Loss: 1.172525, Recon Loss: 0.254588, KL Loss: 18.358732
+Epoch 4, Train Loss: 1.172702, Recon Loss: 0.254765, KL Loss: 18.358732
+Epoch 5, Train Loss: 1.172597, Recon Loss: 0.254660, KL Loss: 18.358732
+Training completed in 376.59 seconds
+
+Calculating metrics for all samples...
+Validation metrics:
+Reconstruction MSE: 0.253238
+KL Divergence: 18.475884
+Total Loss: 1.177032
+
+Reconstruction error statistics:
+Min: 0.000412
+Max: 10.842365
+Mean: 0.490048
+Median: 0.114688
+
+KL divergence statistics:
+Min: 0.630379
+Max: 586.098377
+Mean: 15.974609
+Median: 3.294142
+
+Total loss statistics:
+Min: 0.035491
+Max: 39.749953
+Mean: 1.288779
+Median: 0.355657
+
+Average metrics by class:
+Benign (n=967564):
+  Reconstruction Error: 0.254740
+  KL Divergence: 18.338079
+  Total Loss: 1.171644
+Suspicious (n=15082):
+  Reconstruction Error: 0.915455
+  KL Divergence: 10.298769
+  Total Loss: 1.430393
+Malicious (n=158432):
+  Reconstruction Error: 1.886607
+  KL Divergence: 2.080918
+  Total Loss: 1.990653
+
+Optimal thresholds and performance:
+
+Reconstruction Error:
+Threshold: 1.491568
+Accuracy: 0.965
+Precision: 0.828
+Recall: 0.944
+F1 Score: 0.882
+True Positives: 149598
+False Positives: 31040
+True Negatives: 951606
+False Negatives: 8834
+
+Kl Divergence:
+Threshold: 1.212240
+Accuracy: 0.211
+Precision: 0.150
+Recall: 0.998
+F1 Score: 0.260
+True Positives: 158154
+False Positives: 899687
+True Negatives: 82959
+False Negatives: 278
+
+Total Loss:
+Threshold: 1.559882
+Accuracy: 0.932
+Precision: 0.682
+Recall: 0.958
+F1 Score: 0.797
+True Positives: 151855
+False Positives: 70884
+True Negatives: 911762
+False Negatives: 6577
+
+Sklearn-based VAE analysis complete!
+Total time took: 500.5058557987213 seconds
