@@ -314,6 +314,7 @@ def kmeans_stratified_sampling(features, labels, target_size=TARGET_SIZE):
     
     return sampled_indices
 
+
 def calculate_kl_divergence(hist1, hist2):
     """
     Calculate KL divergence between two histograms.
@@ -356,6 +357,7 @@ def calculate_js_distance(p, q):
     
     m = 0.5 * (p + q)
     return 0.5 * (entropy(p, m) + entropy(q, m))
+
 
 def measure_information_loss(original_features, reduced_features, original_labels, reduced_labels):
     """
@@ -707,8 +709,8 @@ def main():
     # Load and preprocess data
     print(f"\nLoading data from {len(csv_files)} files in {data_path}...")
     df_scaled, feature_names = load_and_preprocess_beth_data(csv_files, data_path)
-    df_scaled = df_scaled[:100000]
-    TARGET_SIZE = 5000
+    # df_scaled = df_scaled[:100000]
+    # TARGET_SIZE = 5000
 
     # Separate features and labels
     features = df_scaled[feature_names].values

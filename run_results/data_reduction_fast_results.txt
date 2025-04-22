@@ -1,0 +1,408 @@
+================================================================================
+BETH Dataset Reduction with Information Loss Measurement
+================================================================================
+
+Loading data from 3 files in /Users/giladbattat/Documents/GitHub/Unsupervised_Anomaly_Detection/data...
+Loading data from /Users/giladbattat/Documents/GitHub/Unsupervised_Anomaly_Detection/data...
+Original dataset shape: (1141078, 16)
+Columns in the dataset: ['timestamp', 'processId', 'threadId', 'parentProcessId', 'userId', 'mountNamespace', 'processName', 'hostName', 'eventId', 'eventName', 'stackAddresses', 'argsNum', 'returnValue', 'args', 'sus', 'evil']
+
+Class distribution:
+Benign samples (evil=0, sus=0): 967564 (84.79%)
+Suspicious samples (evil=0, sus=1): 15082 (1.32%)
+Malicious samples (evil=1): 158432 (13.88%)
+
+Creating binary features based on paper recommendations...
+
+Feature value ranges before preprocessing:
+isSystemProcess: Min=0, Max=1, Unique values=2
+isSystemParentProcess: Min=0, Max=1, Unique values=2
+isSystemUser: Min=0, Max=1, Unique values=2
+isDefaultMountNamespace: Min=0, Max=1, Unique values=2
+eventId: Min=2, Max=1010, Unique values=46
+argsNum: Min=0, Max=5, Unique values=6
+returnValueCat: Min=-1, Max=1, Unique values=3
+Processed dataset shape: (1141078, 9)
+
+Dataset summary:
+  Total samples: 1,141,078
+  Number of features: 7
+  Evil samples: 158,432 (13.88%)
+  Target size for reduced dataset: 20,000 samples (1.75% of original)
+
+Split dataset into train and test sets:
+  Training set: 912,862 samples
+  Test set: 228,216 samples
+
+==================================================
+Running hybrid sampling (KMeans + Stratified)...
+==================================================
+
+Hybrid K-means + Stratified Sampling:
+  Original distribution: 126746 evil, 786116 benign
+  Original evil ratio: 0.1388
+  Target: 2776 evil samples, 17224 benign samples
+  Using 750 clusters for evil class
+  Using 1500 clusters for benign class
+  Running K-means for evil samples...
+Evil clustering: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [00:24<00:00,  4.12it/s]
+  Evil cluster sizes - min: 0, max: 115815, mean: 169.0
+  Running K-means for benign samples...
+Benign clustering: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████| 100/100 [05:11<00:00,  3.12s/it]
+  Benign cluster sizes - min: 0, max: 125419, mean: 524.1
+  Selecting representative points from evil clusters...
+Processing evil clusters: 100%|███████████████████████████████████████████████████████████████████████████████████████████| 750/750 [00:00<00:00, 23465.95it/s]
+  Selecting representative points from benign clusters...
+Processing benign clusters: 100%|████████████████████████████████████████████████████████████████████████████████████████| 1500/1500 [00:00<00:00, 5277.27it/s]
+Samples from clustering: 259
+Randomly added samples: 19741
+Percentage from clustering: 1.29%
+  Final selection: 2776 evil, 17224 benign
+  Total samples selected: 20000
+  Final evil ratio: 0.1388
+
+==================================================
+Running 5 random stratified samples for comparison...
+==================================================
+
+Evaluating 5 random stratified samples for comparison:
+
+  Sample 1/5:
+  Stratified random sampling:
+    Original evil ratio: 0.1388
+    Keeping 2776 evil and 17224 benign samples
+    Total samples selected: 20000
+  Measuring information loss for random sample 1...
+
+Measuring information loss:
+  Calculating distribution similarity metrics...
+  Feature divergence summary:
+    KL divergence - min: 0.0000, max: 0.0007, mean: 0.0001
+    JS distance - min: 0.0000, max: 0.0001, mean: 0.0000
+  Class distribution:
+    Original evil ratio: 0.1388
+    Reduced evil ratio: 0.1388
+    Absolute difference: 0.0000
+  Calculating PCA variance preservation...
+    Original explained variance ratios: [0.27361875 0.22736786 0.21217868 0.10049847 0.0908871 ]
+    Reduced explained variance ratios: [0.27485216 0.22833225 0.21038624 0.1008543  0.09118322]
+    Total variance difference: 0.0046
+  Evaluating model performance on test set...
+    Training classifier on original data...
+    Training classifier on reduced data...
+    ROC-AUC scores:
+      Original model: 0.9984
+      Reduced model: 0.9980
+      Difference: 0.0004
+    Precision-Recall AUC scores:
+      Original model: 0.9965
+      Reduced model: 0.9957
+      Difference: 0.0009
+  Evaluating anomaly detection performance...
+    Anomaly detection AUC scores:
+      Original model: 0.7361
+      Reduced model: 0.7248
+      Difference: 0.0113
+  Sample 1 key metrics:
+    KL divergence: 0.0001
+    JS distance: 0.0000
+    Class ratio diff: 0.0000
+    ROC-AUC diff: 0.0004 (0.9984 -> 0.9980)
+    PR-AUC diff: 0.0009 (0.9965 -> 0.9957)
+    Anomaly AUC diff: 0.0113 (0.7361 -> 0.7248)
+
+  Sample 2/5:
+  Stratified random sampling:
+    Original evil ratio: 0.1388
+    Keeping 2776 evil and 17224 benign samples
+    Total samples selected: 20000
+  Measuring information loss for random sample 2...
+
+Measuring information loss:
+  Calculating distribution similarity metrics...
+  Feature divergence summary:
+    KL divergence - min: 0.0000, max: 0.0007, mean: 0.0001
+    JS distance - min: 0.0000, max: 0.0001, mean: 0.0000
+  Class distribution:
+    Original evil ratio: 0.1388
+    Reduced evil ratio: 0.1388
+    Absolute difference: 0.0000
+  Calculating PCA variance preservation...
+    Original explained variance ratios: [0.27361875 0.22736786 0.21217868 0.10049847 0.0908871 ]
+    Reduced explained variance ratios: [0.27485216 0.22833225 0.21038624 0.1008543  0.09118322]
+    Total variance difference: 0.0046
+  Evaluating model performance on test set...
+    Training classifier on original data...
+    Training classifier on reduced data...
+    ROC-AUC scores:
+      Original model: 0.9984
+      Reduced model: 0.9980
+      Difference: 0.0004
+    Precision-Recall AUC scores:
+      Original model: 0.9965
+      Reduced model: 0.9957
+      Difference: 0.0009
+  Evaluating anomaly detection performance...
+    Anomaly detection AUC scores:
+      Original model: 0.7361
+      Reduced model: 0.7248
+      Difference: 0.0113
+  Sample 2 key metrics:
+    KL divergence: 0.0001
+    JS distance: 0.0000
+    Class ratio diff: 0.0000
+    ROC-AUC diff: 0.0004 (0.9984 -> 0.9980)
+    PR-AUC diff: 0.0009 (0.9965 -> 0.9957)
+    Anomaly AUC diff: 0.0113 (0.7361 -> 0.7248)
+
+  Sample 3/5:
+  Stratified random sampling:
+    Original evil ratio: 0.1388
+    Keeping 2776 evil and 17224 benign samples
+    Total samples selected: 20000
+  Measuring information loss for random sample 3...
+
+Measuring information loss:
+  Calculating distribution similarity metrics...
+  Feature divergence summary:
+    KL divergence - min: 0.0000, max: 0.0007, mean: 0.0001
+    JS distance - min: 0.0000, max: 0.0001, mean: 0.0000
+  Class distribution:
+    Original evil ratio: 0.1388
+    Reduced evil ratio: 0.1388
+    Absolute difference: 0.0000
+  Calculating PCA variance preservation...
+    Original explained variance ratios: [0.27361875 0.22736786 0.21217868 0.10049847 0.0908871 ]
+    Reduced explained variance ratios: [0.27485216 0.22833225 0.21038624 0.1008543  0.09118322]
+    Total variance difference: 0.0046
+  Evaluating model performance on test set...
+    Training classifier on original data...
+    Training classifier on reduced data...
+    ROC-AUC scores:
+      Original model: 0.9984
+      Reduced model: 0.9980
+      Difference: 0.0004
+    Precision-Recall AUC scores:
+      Original model: 0.9965
+      Reduced model: 0.9957
+      Difference: 0.0009
+  Evaluating anomaly detection performance...
+    Anomaly detection AUC scores:
+      Original model: 0.7361
+      Reduced model: 0.7248
+      Difference: 0.0113
+  Sample 3 key metrics:
+    KL divergence: 0.0001
+    JS distance: 0.0000
+    Class ratio diff: 0.0000
+    ROC-AUC diff: 0.0004 (0.9984 -> 0.9980)
+    PR-AUC diff: 0.0009 (0.9965 -> 0.9957)
+    Anomaly AUC diff: 0.0113 (0.7361 -> 0.7248)
+
+  Sample 4/5:
+  Stratified random sampling:
+    Original evil ratio: 0.1388
+    Keeping 2776 evil and 17224 benign samples
+    Total samples selected: 20000
+  Measuring information loss for random sample 4...
+
+Measuring information loss:
+  Calculating distribution similarity metrics...
+  Feature divergence summary:
+    KL divergence - min: 0.0000, max: 0.0007, mean: 0.0001
+    JS distance - min: 0.0000, max: 0.0001, mean: 0.0000
+  Class distribution:
+    Original evil ratio: 0.1388
+    Reduced evil ratio: 0.1388
+    Absolute difference: 0.0000
+  Calculating PCA variance preservation...
+    Original explained variance ratios: [0.27361875 0.22736786 0.21217868 0.10049847 0.0908871 ]
+    Reduced explained variance ratios: [0.27485216 0.22833225 0.21038624 0.1008543  0.09118322]
+    Total variance difference: 0.0046
+  Evaluating model performance on test set...
+    Training classifier on original data...
+    Training classifier on reduced data...
+    ROC-AUC scores:
+      Original model: 0.9984
+      Reduced model: 0.9980
+      Difference: 0.0004
+    Precision-Recall AUC scores:
+      Original model: 0.9965
+      Reduced model: 0.9957
+      Difference: 0.0009
+  Evaluating anomaly detection performance...
+    Anomaly detection AUC scores:
+      Original model: 0.7361
+      Reduced model: 0.7248
+      Difference: 0.0113
+  Sample 4 key metrics:
+    KL divergence: 0.0001
+    JS distance: 0.0000
+    Class ratio diff: 0.0000
+    ROC-AUC diff: 0.0004 (0.9984 -> 0.9980)
+    PR-AUC diff: 0.0009 (0.9965 -> 0.9957)
+    Anomaly AUC diff: 0.0113 (0.7361 -> 0.7248)
+
+  Sample 5/5:
+  Stratified random sampling:
+    Original evil ratio: 0.1388
+    Keeping 2776 evil and 17224 benign samples
+    Total samples selected: 20000
+  Measuring information loss for random sample 5...
+
+Measuring information loss:
+  Calculating distribution similarity metrics...
+  Feature divergence summary:
+    KL divergence - min: 0.0000, max: 0.0007, mean: 0.0001
+    JS distance - min: 0.0000, max: 0.0001, mean: 0.0000
+  Class distribution:
+    Original evil ratio: 0.1388
+    Reduced evil ratio: 0.1388
+    Absolute difference: 0.0000
+  Calculating PCA variance preservation...
+    Original explained variance ratios: [0.27361875 0.22736786 0.21217868 0.10049847 0.0908871 ]
+    Reduced explained variance ratios: [0.27485216 0.22833225 0.21038624 0.1008543  0.09118322]
+    Total variance difference: 0.0046
+  Evaluating model performance on test set...
+    Training classifier on original data...
+    Training classifier on reduced data...
+    ROC-AUC scores:
+      Original model: 0.9984
+      Reduced model: 0.9980
+      Difference: 0.0004
+    Precision-Recall AUC scores:
+      Original model: 0.9965
+      Reduced model: 0.9957
+      Difference: 0.0009
+  Evaluating anomaly detection performance...
+    Anomaly detection AUC scores:
+      Original model: 0.7361
+      Reduced model: 0.7248
+      Difference: 0.0113
+  Sample 5 key metrics:
+    KL divergence: 0.0001
+    JS distance: 0.0000
+    Class ratio diff: 0.0000
+    ROC-AUC diff: 0.0004 (0.9984 -> 0.9980)
+    PR-AUC diff: 0.0009 (0.9965 -> 0.9957)
+    Anomaly AUC diff: 0.0113 (0.7361 -> 0.7248)
+
+Average metrics across all random samples:
+  anomaly_auc_diff: 0.0113
+  anomaly_auc_orig: 0.7361
+  anomaly_auc_red: 0.7248
+  auc_diff: 0.0004
+  auc_orig: 0.9984
+  auc_red: 0.9980
+  avg_js_distance: 0.0000
+  avg_kl_divergence: 0.0001
+  class_ratio_diff: 0.0000
+  pca_variance_diff: 0.0046
+  pr_auc_diff: 0.0009
+  pr_auc_orig: 0.9965
+  pr_auc_red: 0.9957
+
+Standard deviation across random samples:
+  anomaly_auc_diff: 0.0000
+  auc_diff: 0.0000
+  avg_js_distance: 0.0000
+  avg_kl_divergence: 0.0000
+  class_ratio_diff: 0.0000
+  pca_variance_diff: 0.0000
+  pr_auc_diff: 0.0000
+
+==================================================
+Measuring information loss for hybrid approach...
+==================================================
+
+Measuring information loss:
+  Calculating distribution similarity metrics...
+  Feature divergence summary:
+    KL divergence - min: 0.0000, max: 0.0013, mean: 0.0003
+    JS distance - min: 0.0000, max: 0.0004, mean: 0.0001
+  Class distribution:
+    Original evil ratio: 0.1388
+    Reduced evil ratio: 0.1388
+    Absolute difference: 0.0000
+  Calculating PCA variance preservation...
+    Original explained variance ratios: [0.27361875 0.22736786 0.21217868 0.10049847 0.0908871 ]
+    Reduced explained variance ratios: [0.26504908 0.22544638 0.22106212 0.09746491 0.0903586 ]
+    Total variance difference: 0.0229
+  Evaluating model performance on test set...
+    Training classifier on original data...
+    Training classifier on reduced data...
+    ROC-AUC scores:
+      Original model: 0.9984
+      Reduced model: 0.9984
+      Difference: 0.0000
+    Precision-Recall AUC scores:
+      Original model: 0.9965
+      Reduced model: 0.9965
+      Difference: 0.0001
+  Evaluating anomaly detection performance...
+    Anomaly detection AUC scores:
+      Original model: 0.7361
+      Reduced model: 0.7258
+      Difference: 0.0103
+
+==================================================
+Comparing approaches and generating visualizations:
+==================================================
+
+Information Loss Metrics Comparison (lower is better):
+                 Metric  Hybrid  Random
+          KL Divergence  0.0003  0.0001
+            JS Distance  0.0001  0.0000
+ Class Ratio Difference  0.0000  0.0000
+PCA Variance Difference  0.0229  0.0046
+           ROC-AUC Loss  0.0000  0.0004
+            PR-AUC Loss  0.0001  0.0009
+       Anomaly AUC Loss  0.0103  0.0113
+
+Saved information loss comparison plot to 'information_loss_comparison.png'
+
+Performance Metrics Comparison (higher is better):
+     Metric     Type  Hybrid  Random
+        AUC Original  0.9984  0.9984
+        AUC  Reduced  0.9984  0.9980
+     PR-AUC Original  0.9965  0.9965
+     PR-AUC  Reduced  0.9965  0.9957
+Anomaly AUC Original  0.7361  0.7361
+Anomaly AUC  Reduced  0.7258  0.7248
+Saved performance comparison plot to 'performance_comparison.png'
+
+Detailed metrics comparison:
+           Metric  Hybrid  Random  Difference (Hybrid - Random)
+avg_kl_divergence  0.0003  0.0001                        0.0002
+  avg_js_distance  0.0001  0.0000                        0.0001
+ class_ratio_diff  0.0000  0.0000                        0.0000
+pca_variance_diff  0.0229  0.0046                        0.0183
+         auc_diff  0.0000  0.0004                       -0.0004
+         auc_orig  0.9984  0.9984                        0.0000
+          auc_red  0.9984  0.9980                        0.0004
+      pr_auc_diff  0.0001  0.0009                       -0.0008
+      pr_auc_orig  0.9965  0.9965                        0.0000
+       pr_auc_red  0.9965  0.9957                        0.0008
+ anomaly_auc_diff  0.0103  0.0113                       -0.0010
+ anomaly_auc_orig  0.7361  0.7361                        0.0000
+  anomaly_auc_red  0.7258  0.7248                        0.0010
+Saved detailed metrics to 'metrics_comparison.csv'
+
+Reduced dataset of 20,000 samples saved to 'reduced_beth_dataset.csv'
+Reduction ratio: 0.0175 (1.75% of original size)
+Evil ratio - Original: 0.1388, Reduced: 0.1388, Difference: 0.0000
+
+==================================================
+Summary of findings:
+==================================================
+Hybrid approach performed better than random in 3/7 key metrics
+Biggest improvement: anomaly_auc_diff reduced by 0.0010
+Model performance impact:
+  ROC-AUC: 0.0000 absolute difference from original
+  PR-AUC: 0.0001 absolute difference from original
+  Anomaly detection: 0.0103 absolute difference from original
+
+Final recommendation:
+Simple stratified random sampling is sufficient for reducing the BETH dataset.
+================================================================================
+Total time took: 470.2961428165436 seconds
