@@ -9,11 +9,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, IsolationForest
-from sklearn.metrics import roc_auc_score, precision_recall_curve, auc
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics.pairwise import pairwise_distances
-from sklearn.decomposition import PCA
 from scipy.stats import entropy
 import seaborn as sns
 
@@ -26,7 +21,7 @@ plt.rcParams['font.size'] = 12
 
 # Constants
 TARGET_SIZE = 20000  # Number of samples to keep in the reduced dataset
-RANDOM_SAMPLES = 5   # Number of random samples to generate for comparison
+RANDOM_SAMPLES = 5  # Number of random samples to generate for comparison
 
 
 def evaluate_multiple_random_samples(features, labels, n_samples=5, target_size=20000):
@@ -315,50 +310,6 @@ def kmeans_stratified_sampling(features, labels, target_size=TARGET_SIZE):
     return sampled_indices
 
 
-def calculate_kl_divergence(hist1, hist2):
-    """
-    Calculate KL divergence between two histograms.
-    Add small epsilon to avoid division by zero.
-    
-    Args:
-        hist1: First histogram
-        hist2: Second histogram
-        
-    Returns:
-        KL divergence value
-    """
-    hist1 = hist1 + 1e-10
-    hist2 = hist2 + 1e-10
-    
-    # Normalize
-    hist1 = hist1 / np.sum(hist1)
-    hist2 = hist2 / np.sum(hist2)
-    
-    return entropy(hist1, hist2)
-
-
-def calculate_js_distance(p, q):
-    """
-    Calculate Jensen-Shannon distance between distributions p and q.
-    
-    Args:
-        p: First probability distribution
-        q: Second probability distribution
-        
-    Returns:
-        JS distance value
-    """
-    p = p + 1e-10
-    q = q + 1e-10
-    
-    # Normalize
-    p = p / np.sum(p)
-    q = q / np.sum(q)
-    
-    m = 0.5 * (p + q)
-    return 0.5 * (entropy(p, m) + entropy(q, m))
-
-
 def measure_information_loss(original_features, reduced_features, original_labels, reduced_labels):
     """
     Measure information loss between original and reduced datasets.
@@ -572,128 +523,162 @@ def measure_information_loss(original_features, reduced_features, original_label
     return metrics
 
 
-def plot_comparison(hybrid_metrics, random_metrics):
+def multi_feature_stratified_sampling(features, labels, target_size=20000):
     """
-    Plot comparison between hybrid approach and random sampling.
-    
-    Args:
-        hybrid_metrics: Metrics from hybrid sampling
-        random_metrics: Metrics from random sampling
+    Stratified sampling based on multiple features.
     """
-    # Select keys for comparison (ignore raw AUC values, just look at differences)
-    compare_keys = [
-        'avg_kl_divergence', 'avg_js_distance', 'class_ratio_diff', 
-        'pca_variance_diff', 'auc_diff', 'pr_auc_diff', 'anomaly_auc_diff'
-    ]
+    print("Running multi-feature stratified sampling...")
     
-    # Better labels for plot
-    label_map = {
-        'avg_kl_divergence': 'KL Divergence',
-        'avg_js_distance': 'JS Distance',
-        'class_ratio_diff': 'Class Ratio Difference',
-        'pca_variance_diff': 'PCA Variance Difference',
-        'auc_diff': 'ROC-AUC Loss',
-        'pr_auc_diff': 'PR-AUC Loss',
-        'anomaly_auc_diff': 'Anomaly AUC Loss'
-    }
+    # Create bins based on multiple features
+    isSystemProcess = features[:, 0]  # First feature
+    eventId = features[:, 4]  # Fifth feature or another important feature
     
-    # Prepare data for plotting
-    metrics_df = pd.DataFrame({
-        'Metric': [label_map[k] for k in compare_keys],
-        'Hybrid': [hybrid_metrics[k] for k in compare_keys],
-        'Random': [random_metrics[k] for k in compare_keys]
-    })
+    # Create compound strata
+    strata = []
+    for sys_val in [0, 1]:
+        for event_range in range(0, 50, 10):  # Create ranges of event IDs
+            mask = (isSystemProcess == sys_val) & (eventId >= event_range) & (eventId < event_range + 10)
+            if np.sum(mask) > 0:
+                strata.append(np.where(mask)[0])
     
-    print("\nInformation Loss Metrics Comparison (lower is better):")
-    print(metrics_df.to_string(index=False, float_format=lambda x: f"{x:.4f}"))
+    # Also stratify by evil/benign
+    evil_strata = []
+    for s in strata:
+        # Split each stratum into evil/benign
+        evil_s = s[labels[s] == 1]
+        benign_s = s[labels[s] == 0]
+        if len(evil_s) > 0:
+            evil_strata.append((evil_s, 1))  # (indices, label)
+        if len(benign_s) > 0:
+            evil_strata.append((benign_s, 0))  # (indices, label)
     
-    # Melt the dataframe for easier plotting
-    melted_df = pd.melt(metrics_df, id_vars=['Metric'], var_name='Method', value_name='Value')
+    # Sample proportionally from each stratum
+    sampled_indices = []
+    evil_count = 0
+    benign_count = 0
     
-    # Create a grouped bar plot
-    plt.figure(figsize=(14, 10))
-    ax = sns.barplot(x='Metric', y='Value', hue='Method', data=melted_df)
-    plt.title('Information Loss Comparison: Hybrid vs Random Sampling', fontsize=16)
-    plt.xticks(rotation=45, ha='right')
-    plt.ylabel('Metric Value (lower is better)', fontsize=14)
-    plt.xlabel('', fontsize=14)
+    for s, is_evil in evil_strata:
+        # Calculate proportional sample size
+        size = max(1, int(len(s) / len(features) * target_size))
+        if len(s) <= size:
+            sampled_indices.extend(s)
+            if is_evil == 1:
+                evil_count += len(s)
+            else:
+                benign_count += len(s)
+        else:
+            selected = np.random.choice(s, size=size, replace=False)
+            sampled_indices.extend(selected)
+            if is_evil == 1:
+                evil_count += size
+            else:
+                benign_count += size
     
-    # Add value labels on top of bars
-    for i, p in enumerate(ax.patches):
-        ax.annotate(f"{p.get_height():.4f}", 
-                   (p.get_x() + p.get_width() / 2., p.get_height()), 
-                   ha='center', va='bottom', fontsize=10, rotation=0)
+    # Ensure we get exactly target_size samples
+    if len(sampled_indices) > target_size:
+        sampled_indices = np.random.choice(sampled_indices, size=target_size, replace=False)
+    elif len(sampled_indices) < target_size:
+        # Add more samples randomly from unrepresented indices
+        remaining = list(set(range(len(features))) - set(sampled_indices))
+        additional = np.random.choice(remaining, size=target_size-len(sampled_indices), replace=False)
+        sampled_indices.extend(additional)
     
-    plt.tight_layout()
+    final_indices = np.array(sampled_indices)
+    final_evil_count = np.sum(labels[final_indices])
+    final_benign_count = len(final_indices) - final_evil_count
     
-    # Save plot
-    plt.savefig('information_loss_comparison.png')
-    print("\nSaved information loss comparison plot to 'information_loss_comparison.png'")
-    plt.close()
+    print(f"  Total samples selected: {len(final_indices)}")
+    print(f"  Evil samples: {final_evil_count}")
+    print(f"  Benign samples: {final_benign_count}")
+    print(f"  Evil ratio: {final_evil_count/len(final_indices):.4f}")
     
-    # Plot performance metrics separately
-    performance_keys = ['auc_orig', 'auc_red', 'pr_auc_orig', 'pr_auc_red', 
-                        'anomaly_auc_orig', 'anomaly_auc_red']
+    return final_indices
+
+
+def optimized_density_based_sampling(features, labels, target_size=20000):
+    """
+    Optimized density-based sampling with subsampling for speed.
+    """
+    from sklearn.neighbors import KernelDensity
+    from sklearn.preprocessing import StandardScaler
     
-    performance_df = pd.DataFrame({
-        'Metric': ['AUC', 'AUC', 'PR-AUC', 'PR-AUC', 'Anomaly AUC', 'Anomaly AUC'],
-        'Type': ['Original', 'Reduced', 'Original', 'Reduced', 'Original', 'Reduced'],
-        'Hybrid': [hybrid_metrics[k] for k in performance_keys],
-        'Random': [random_metrics[k] for k in performance_keys]
-    })
+    print("Running optimized density-based sampling...")
     
-    print("\nPerformance Metrics Comparison (higher is better):")
-    print(performance_df.to_string(index=False, float_format=lambda x: f"{x:.4f}"))
+    # Subsample for density estimation (max 50k points)
+    max_subsample = 50000
+    if len(features) > max_subsample:
+        subsample_idx = np.random.choice(len(features), max_subsample, replace=False)
+        density_features = features[subsample_idx]
+    else:
+        density_features = features
+        subsample_idx = np.arange(len(features))
     
-    # Plot performance comparison
-    plt.figure(figsize=(14, 8))
+    # Scale features
+    scaler = StandardScaler()
+    features_scaled = scaler.fit_transform(density_features)
     
-    metrics_to_plot = ['AUC', 'PR-AUC', 'Anomaly AUC']
-    for i, metric in enumerate(metrics_to_plot):
-        plt.subplot(1, 3, i+1)
+    # Calculate density for subsample
+    print("  Calculating density estimates on subsample...")
+    kde = KernelDensity(bandwidth=0.5).fit(features_scaled)
+    log_density = kde.score_samples(features_scaled)
+    
+    # Create 10 percentile bins
+    n_bins = 10
+    density_bins = np.percentile(log_density, np.linspace(0, 100, n_bins+1))
+    
+    # Sample from each bin
+    print("  Sampling from density bins...")
+    sampled_indices = []
+    
+    for i in range(n_bins):
+        # Find points in this density bin
+        if i < n_bins-1:
+            bin_indices = np.where((log_density >= density_bins[i]) & 
+                                  (log_density < density_bins[i+1]))[0]
+        else:
+            bin_indices = np.where(log_density >= density_bins[i])[0]
         
-        # Filter data for this metric
-        metric_data = performance_df[performance_df['Metric'] == metric]
+        # Map back to original indices
+        original_bin_indices = subsample_idx[bin_indices]
         
-        # Plot grouped bars
-        ax = sns.barplot(x='Type', y='Hybrid', data=metric_data, color='skyblue', label='Hybrid')
-        sns.barplot(x='Type', y='Random', data=metric_data, color='lightcoral', label='Random', alpha=0.6)
+        # Sample proportionally
+        bin_size = int(len(bin_indices) / len(density_features) * target_size)
+        if bin_size > 0:
+            bin_sample = np.random.choice(original_bin_indices, 
+                                          size=min(bin_size, len(original_bin_indices)), 
+                                          replace=False)
+            sampled_indices.extend(bin_sample)
+    
+    # Ensure class ratio is preserved
+    sampled_indices = np.array(sampled_indices)
+    evil_ratio = np.mean(labels)
+    sampled_evil_ratio = np.mean(labels[sampled_indices])
+    
+    # Adjust to maintain class ratio
+    final_indices = stratify_and_adjust(sampled_indices, labels, target_size, evil_ratio)
+    return final_indices
+
+
+def stratify_and_adjust(indices, labels, target_size, target_evil_ratio):
+    """Helper function to adjust samples to match target size and class ratio"""
+    evil_indices = indices[labels[indices] == 1]
+    benign_indices = indices[labels[indices] == 0]
+    
+    n_evil = int(target_size * target_evil_ratio)
+    n_benign = target_size - n_evil
+    
+    # Sample with replacement only if necessary
+    if len(evil_indices) < n_evil:
+        final_evil = np.random.choice(evil_indices, size=n_evil, replace=True)
+    else:
+        final_evil = np.random.choice(evil_indices, size=n_evil, replace=False)
         
-        # Add value labels on top of bars
-        for j, p in enumerate(ax.patches):
-            ax.annotate(f"{p.get_height():.4f}", 
-                       (p.get_x() + p.get_width() / 2., p.get_height()), 
-                       ha='center', va='bottom', fontsize=9, rotation=0)
-        
-        plt.title(f'{metric} Comparison', fontsize=14)
-        plt.xlabel('')
-        plt.ylim(0, 1.0)
-        
-        if i == 0:
-            plt.legend()
+    if len(benign_indices) < n_benign:
+        final_benign = np.random.choice(benign_indices, size=n_benign, replace=True)
+    else:
+        final_benign = np.random.choice(benign_indices, size=n_benign, replace=False)
     
-    plt.tight_layout()
-    plt.savefig('performance_comparison.png')
-    print("Saved performance comparison plot to 'performance_comparison.png'")
-    plt.close()
-    
-    # Create a detailed comparison table
-    print("\nDetailed metrics comparison:")
-    detailed_metrics = {
-        'Metric': list(hybrid_metrics.keys()),
-        'Hybrid': [hybrid_metrics[k] for k in hybrid_metrics.keys()],
-        'Random': [random_metrics[k] for k in hybrid_metrics.keys()],
-        'Difference (Hybrid - Random)': [hybrid_metrics[k] - random_metrics[k] for k in hybrid_metrics.keys()]
-    }
-    
-    metrics_table = pd.DataFrame(detailed_metrics)
-    print(metrics_table.to_string(index=False, float_format=lambda x: f"{x:.4f}"))
-    
-    # Save as CSV
-    metrics_table.to_csv('metrics_comparison.csv', index=False)
-    print("Saved detailed metrics to 'metrics_comparison.csv'")
-    
-    return metrics_table
+    return np.concatenate([final_evil, final_benign])
 
 
 def main():
@@ -732,91 +717,106 @@ def main():
     print(f"  Training set: {len(X_train):,} samples")
     print(f"  Test set: {len(X_test):,} samples")
     
-    # 1. Hybrid approach (KMeans + Stratified)
+    # Compare different sampling approaches
     print("\n" + "=" * 50)
-    print("Running hybrid sampling (KMeans + Stratified)...")
+    print("COMPARING DIFFERENT SAMPLING APPROACHES")
     print("=" * 50)
+    
+    # 1. Run the hybrid approach (which yields ~260 samples + random)
+    print("\n" + "=" * 30)
+    print("Running original hybrid approach...")
+    print("=" * 30)
     hybrid_indices = kmeans_stratified_sampling(X_train, y_train, target_size=TARGET_SIZE)
     hybrid_features = X_train[hybrid_indices]
     hybrid_labels = y_train[hybrid_indices]
     
-    # 2. Random stratified sampling (average of multiple runs)
-    print("\n" + "=" * 50)
-    print(f"Running {RANDOM_SAMPLES} random stratified samples for comparison...")
-    print("=" * 50)
-    random_metrics = evaluate_multiple_random_samples(X_train, y_train, 
-                                                    n_samples=RANDOM_SAMPLES, 
-                                                    target_size=TARGET_SIZE)
+    # 2. Run multi-feature stratified approach
+    print("\n" + "=" * 30)
+    print("Running multi-feature stratified approach...")
+    print("=" * 30)
+    mf_indices = multi_feature_stratified_sampling(X_train, y_train, target_size=TARGET_SIZE)
+    mf_features = X_train[mf_indices]
+    mf_labels = y_train[mf_indices]
     
-    # 3. Measure information loss for hybrid approach
+    # 3. Run density-based approach
+    print("\n" + "=" * 30)
+    print("Running density-based approach...")
+    print("=" * 30)
+    density_indices = optimized_density_based_sampling(X_train, y_train, target_size=TARGET_SIZE)
+    density_features = X_train[density_indices]
+    density_labels = y_train[density_indices]
+    
+    # 4. Run standard random stratified approach for comparison
+    print("\n" + "=" * 30)
+    print("Running random stratified approach...")
+    print("=" * 30)
+    random_metrics = evaluate_multiple_random_samples(X_train, y_train, n_samples=1, target_size=TARGET_SIZE)
+    
+    # Measure and compare information loss for each approach
     print("\n" + "=" * 50)
-    print("Measuring information loss for hybrid approach...")
+    print("Measuring information loss for different approaches...")
     print("=" * 50)
+    
+    print("\nMeasuring for multi-feature stratified approach...")
+    mf_metrics = measure_information_loss(X_train, mf_features, y_train, mf_labels)
+    
+    print("\nMeasuring for density-based approach...")
+    density_metrics = measure_information_loss(X_train, density_features, y_train, density_labels)
+    
+    print("\nMeasuring for hybrid approach...")
     hybrid_metrics = measure_information_loss(X_train, hybrid_features, y_train, hybrid_labels)
     
-    # 4. Compare and visualize results
+    # Combine metrics for comparison
+    compare_metrics = {
+        'Multi-Feature': mf_metrics,
+        'Density-Based': density_metrics,
+        'Hybrid': hybrid_metrics,
+        'Random': random_metrics
+    }
+    
+    # Display comparison
     print("\n" + "=" * 50)
-    print("Comparing approaches and generating visualizations:")
-    print("=" * 50)
-    comparison_table = plot_comparison(hybrid_metrics, random_metrics)
-    
-    # 5. Save the reduced dataset from the hybrid approach
-    # Convert back to DataFrame
-    reduced_df = pd.DataFrame(hybrid_features, columns=feature_names)
-    reduced_df['evil'] = hybrid_labels
-    
-    # Save to CSV
-    output_file = 'reduced_beth_dataset.csv'
-    reduced_df.to_csv(output_file, index=False)
-    print(f"\nReduced dataset of {len(reduced_df):,} samples saved to '{output_file}'")
-    
-    # Calculate reduction ratio
-    reduction_ratio = len(reduced_df) / len(df_scaled)
-    print(f"Reduction ratio: {reduction_ratio:.4f} " 
-          f"({reduction_ratio*100:.2f}% of original size)")
-    
-    # Compare evil ratio
-    original_evil_ratio = df_scaled['evil'].mean()
-    reduced_evil_ratio = reduced_df['evil'].mean()
-    print(f"Evil ratio - Original: {original_evil_ratio:.4f}, " 
-          f"Reduced: {reduced_evil_ratio:.4f}, "
-          f"Difference: {abs(original_evil_ratio - reduced_evil_ratio):.4f}")
-    
-    # Summary of findings
-    print("\n" + "=" * 50)
-    print("Summary of findings:")
+    print("COMPARISON OF SAMPLING APPROACHES")
     print("=" * 50)
     
-    # Determine if hybrid is better than random
-    better_count = sum(1 for k in ['avg_kl_divergence', 'avg_js_distance', 'class_ratio_diff', 
-                                   'pca_variance_diff', 'auc_diff', 'pr_auc_diff', 'anomaly_auc_diff'] 
-                      if hybrid_metrics[k] < random_metrics[k])
+    # Create comparison table
+    metrics_to_compare = ['avg_kl_divergence', 'avg_js_distance', 'class_ratio_diff', 
+                         'pca_variance_diff', 'auc_diff', 'pr_auc_diff', 'anomaly_auc_diff']
     
-    print(f"Hybrid approach performed better than random in {better_count}/7 key metrics")
+    comparison_df = pd.DataFrame({
+        method: [metrics.get(key, 0) for key in metrics_to_compare]
+        for method, metrics in compare_metrics.items()
+    }, index=metrics_to_compare)
     
-    # Show the biggest improvement
-    improvements = {k: random_metrics[k] - hybrid_metrics[k] 
-                   for k in ['avg_kl_divergence', 'avg_js_distance', 'class_ratio_diff', 
-                            'pca_variance_diff', 'auc_diff', 'pr_auc_diff', 'anomaly_auc_diff']}
+    print("\nInformation Loss Metrics Comparison (lower is better):")
+    print(comparison_df.to_string(float_format=lambda x: f"{x:.4f}"))
     
-    best_metric = max(improvements.items(), key=lambda x: x[1])
-    if best_metric[1] > 0:
-        print(f"Biggest improvement: {best_metric[0]} reduced by {best_metric[1]:.4f}")
+    # Save the best performing method's dataset
+    best_method = comparison_df.sum().idxmin()  # Method with lowest total information loss
+    print(f"\nBest performing method: {best_method}")
     
-    # Model performance impact
-    print(f"Model performance impact:")
-    print(f"  ROC-AUC: {hybrid_metrics['auc_diff']:.4f} absolute difference from original")
-    print(f"  PR-AUC: {hybrid_metrics['pr_auc_diff']:.4f} absolute difference from original")
-    print(f"  Anomaly detection: {hybrid_metrics['anomaly_auc_diff']:.4f} absolute difference from original")
-    
-    # Final recommendation
-    print("\nFinal recommendation:")
-    if better_count >= 4:
-        print("The hybrid K-means + stratified approach is recommended for reducing the BETH dataset.")
+    if best_method == 'Multi-Feature':
+        best_features = mf_features
+        best_labels = mf_labels
+    elif best_method == 'Density-Based':
+        best_features = density_features
+        best_labels = density_labels
+    elif best_method == 'Hybrid':
+        best_features = hybrid_features
+        best_labels = hybrid_labels
     else:
-        print("Simple stratified random sampling is sufficient for reducing the BETH dataset.")
+        # Use the original random approach result
+        temp_indices = stratified_random_sampling(X_train, y_train, target_size=TARGET_SIZE)
+        best_features = X_train[temp_indices]
+        best_labels = y_train[temp_indices]
     
-    print("=" * 80)
+    # Save the reduced dataset from the best approach
+    reduced_df = pd.DataFrame(best_features, columns=feature_names)
+    reduced_df['evil'] = best_labels
+    
+    output_file = f'reduced_beth_dataset_{best_method.lower()}.csv'
+    reduced_df.to_csv(output_file, index=False)
+    print(f"\nBest reduced dataset ({len(reduced_df)} samples) saved to '{output_file}'")
 
 
 if __name__ == "__main__":
