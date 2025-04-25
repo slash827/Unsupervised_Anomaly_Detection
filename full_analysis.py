@@ -941,7 +941,7 @@ def main():
         metrics_mca['precision_pos'].append(precision_score(y_true, preds, zero_division=0))
         metrics_mca['recall_pos'].append(recall_score(y_true, preds, zero_division=0))
         metrics_mca['f1_pos'].append(f1_score(y_true, preds, zero_division=0))
-        metrics_mca['precisi    on_neg'].append(precision_score(y_true, preds, pos_label=0, zero_division=0))
+        metrics_mca['precision_neg'].append(precision_score(y_true, preds, pos_label=0, zero_division=0))
         metrics_mca['recall_neg'].append(recall_score(y_true, preds, pos_label=0, zero_division=0))
         metrics_mca['f1_neg'].append(f1_score(y_true, preds, pos_label=0, zero_division=0))
         metrics_mca['f1'].append(compute_true_f1(y_true, preds))
