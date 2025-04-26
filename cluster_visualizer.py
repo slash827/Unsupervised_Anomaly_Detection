@@ -7,17 +7,11 @@ import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.cluster import DBSCAN
 from sklearn.manifold import TSNE
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import silhouette_score, mutual_info_score, classification_report
-import prince  # For MCA
 import umap  # For dimensionality reduction (optional, install with: pip install umap-learn)
-import matplotlib.colors as mcolors
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.colors import ListedColormap
+
 import warnings
 warnings.filterwarnings('ignore')
 

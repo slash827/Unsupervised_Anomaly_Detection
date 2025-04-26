@@ -6,6 +6,7 @@ In case there is a problem downloading the dataset, you can download it directly
 https://www.kaggle.com/datasets/katehighnam/beth-dataset/data?select=labelled_training_data.csv
 Extract the zip file into a directory named "data" in the same directory of the project.
 
+Python version used - 3.11.2
 
 Description of each file - each file does some independent task:
 main - the first file to run, downloads the dataset.

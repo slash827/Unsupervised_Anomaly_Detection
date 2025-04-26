@@ -16,6 +16,7 @@ plt.style.use('seaborn-v0_8-whitegrid')
 plt.rcParams['figure.figsize'] = [12, 8]
 plt.rcParams['font.size'] = 12
 
+
 def train_isolation_forest(X_train, n_estimators=100, contamination='auto', random_state=42):
     """Train an Isolation Forest model on benign data."""
     print(f"\nTraining Isolation Forest with {n_estimators} estimators...")

@@ -76,7 +76,6 @@ def investigate_cluster_statistically(df, labels, cluster_id, cluster_is_evil, f
     - list of dicts: each with feature name, type, p-value, effect size, and cluster info
     """
     import scipy.stats as stats
-    from collections import defaultdict
     import warnings
     import pandas as pd
 
@@ -613,8 +612,6 @@ def run_dbscan_eventid_mcat(df, cutoffs_frac, cluster_size, label_size, test_siz
         metrics_final['f1_neg'].append(f1_score(y_true, preds, pos_label=0, zero_division=0))
         metrics_final['mutual_info'].append(mutual_info_score(y_true, preds))
     return {k: np.mean(v) for k, v in metrics_final.items()}
-
-
 
 
 # ---------------- Feature Importance ---------------- #

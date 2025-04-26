@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.model_selection import train_test_split
 from scipy.stats import entropy
-import seaborn as sns
 
 from utils import load_and_preprocess_beth_data
 
