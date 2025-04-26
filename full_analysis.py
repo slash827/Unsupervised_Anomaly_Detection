@@ -744,7 +744,7 @@ def main():
         dfdb.to_csv(os.path.join(out_dir, 'metrics', 'dbscan_split_metrics.csv'))
 
     # 2c) Add DBSCAN to results and run statistical tests on F1_pos
-    results['dbscan_split'] = dbsplit
+    results['dbscan_split'] = {k: [v] for k, v in dbsplit.items()}
 
     stat_reports = []
     # ANOVA
