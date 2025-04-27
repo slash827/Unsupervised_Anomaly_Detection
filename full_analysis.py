@@ -38,6 +38,7 @@ from kneed import KneeLocator
 import skfuzzy as fuzz
 from scipy.stats import f_oneway, ttest_rel
 
+plt.rcParams.update({'axes.labelsize': 16,})
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 # ---------------- Utility ---------------- #
@@ -59,28 +60,53 @@ def compute_true_f1(y_true, y_pred):
     return (2 * TP) / (2 * TP + FP + FN)
 
 
+def save_full_metrics(metrics_dict, out_dir, file_prefix, title):
+    """
+    Saves metrics:
+    - Pretty printed report with mean, std, avg
+    - Full per-run metrics to CSV
+
+    Args:
+    - metrics_dict: dict of metric name -> list of values
+    - out_dir: folder to save files in
+    - file_prefix: filename prefix (no extension)
+    - title: title for the .txt report
+    """
+    # Compute averages
+    avg_metrics = {k: np.mean(v) for k, v in metrics_dict.items()}
+
+    # Print to screen
+    print(f"\n📊 {title} (Mean ± Std):")
+    for k in metrics_dict:
+        vals = metrics_dict[k]
+        mean_val = np.mean(vals)
+        std_val = np.std(vals)
+        print(f"{k:>15}: mean={mean_val:.4f}, std={std_val:.4f}, avg={mean_val:.4f}")
+
+    # Save report txt
+    with open(os.path.join(out_dir, f'{file_prefix}_report.txt'), 'w') as f:
+        f.write(f"{title} (Mean ± Std)\n")
+        for k in metrics_dict:
+            vals = metrics_dict[k]
+            mean_val = np.mean(vals)
+            std_val = np.std(vals)
+            f.write(f"{k:>15}: mean={mean_val:.4f}, std={std_val:.4f}, avg={mean_val:.4f}\n")
+
+    # Save full per-run CSV
+    pd.DataFrame(metrics_dict).to_csv(
+        os.path.join(out_dir, f'{file_prefix}_metrics.csv'), index=False
+    )
+
+
 # ---------------- Feature Importance ---------------- #
 
 def investigate_cluster_statistically(df, labels, cluster_id, cluster_is_evil, feature_types=None):
-    """
-    Identify distinguishing features of a cluster using statistical tests.
-
-    Parameters:
-    - df : DataFrame (includes features only)
-    - labels : array of cluster labels
-    - cluster_id : the cluster to investigate
-    - cluster_is_evil : bool indicating if the cluster is marked as evil
-    - feature_types : optional dict mapping column name to 'numeric' or 'categorical'
-
-    Returns:
-    - list of dicts: each with feature name, type, p-value, effect size, and cluster info
-    """
     import scipy.stats as stats
     import warnings
     import pandas as pd
 
     if not cluster_is_evil:
-        return []  # skip non-evil clusters
+        return []  # Skip non-evil clusters, no printing!
 
     warnings.filterwarnings("ignore", category=RuntimeWarning)
 
@@ -92,7 +118,7 @@ def investigate_cluster_statistically(df, labels, cluster_id, cluster_is_evil, f
         x_in = df.loc[cluster_mask, col]
         x_out = df.loc[~cluster_mask, col]
 
-        # Guess feature type if not provided
+        # Guess feature type
         if feature_types:
             ftype = feature_types.get(col, 'numeric')
         else:
@@ -120,7 +146,7 @@ def investigate_cluster_statistically(df, labels, cluster_id, cluster_is_evil, f
 
     results.sort(key=lambda x: (x['p'], -x['effect_size']))
 
-    # Calculate best normalized group
+    # ✅ Only if evil and there are significant features
     df_res = pd.DataFrame(results)
     df_res = df_res[df_res['p'] < 0.05]
     if not df_res.empty:
@@ -129,12 +155,12 @@ def investigate_cluster_statistically(df, labels, cluster_id, cluster_is_evil, f
             count=('feature', 'count')
         )
         grouped['normalized'] = grouped['total_effect'] / grouped['count']
-        best_group = grouped['normalized'].idxmax()
-        best_score = grouped['normalized'].max()
-        print(f"\n\U0001F3C6 Best normalized group: {best_group} with score {best_score:.2f}")
+        top = grouped['normalized'].sort_values(ascending=False).head(3)
+        print(f"\n🏆 Top normalized feature groups for evil cluster {cluster_id}:")
+        for i, (name, score) in enumerate(top.items(), 1):
+            print(f"  {i}. {name} (score = {score:.2f})")
 
     return results
-
 
 # ---------------- Internal Evaluation ---------------- #
 
@@ -394,6 +420,84 @@ def external_eval_single(X, y_true, cutoffs_frac,
     raise ValueError(f"Unknown method '{method}'")
 
 
+def external_eval_kmeans_split(df, cluster_size, label_size, test_size,
+                               n_clusters, pca_dims, n_repeats=30, seed_base=42):
+    """
+    Evaluate anomaly detection with KMeans, using DBSCAN-split style:
+    Label clusters as evil/good based on labeled set.
+    """
+
+    cutoffs_frac = np.arange(0.01, 1.0, 0.01)
+    threshold = 0.2  # Evil threshold (same as dbscan_split)
+
+    metrics = {metric: np.zeros((n_repeats, len(cutoffs_frac))) for metric in (
+        'precision_pos', 'recall_pos', 'f1_pos',
+        'precision_neg', 'recall_neg', 'f1_neg',
+        'f1', 'mutual_info'
+    )}
+
+    feats = [c for c in df.columns if c not in {'evil', 'sus', 'split'}]
+
+    for rep in range(n_repeats):
+        rng = np.random.RandomState(seed_base + rep)
+
+        # --- Splitting
+        cluster_df = df.sample(n=cluster_size, random_state=seed_base)
+        remaining = df.drop(cluster_df.index)
+        label_df = remaining.sample(n=label_size, random_state=seed_base + 1)
+        test_df = remaining.drop(label_df.index).sample(n=test_size, random_state=seed_base + 2 + rep)
+
+        Xc = cluster_df[feats].values
+        Xl = label_df[feats].values
+        Xt = test_df[feats].values
+
+        pca = PCA(n_components=pca_dims, random_state=seed_base)
+        Xc_pca = pca.fit_transform(Xc)
+        Xl_pca = pca.transform(Xl)
+        Xt_pca = pca.transform(Xt)
+
+        # --- Train KMeans
+        model = KMeans(n_clusters=n_clusters, random_state=seed_base, n_init=10)
+        model.fit(Xc_pca)
+        centers = model.cluster_centers_
+
+        # --- Label clusters
+        cluster_assignments_label = model.predict(Xl_pca)
+
+        yl = label_df['evil'].astype(int).values
+        cluster_pred = {
+            cl: int((cluster_assignments_label == cl).sum() > 0 and yl[cluster_assignments_label == cl].mean() > threshold)
+            for cl in range(n_clusters)
+        }
+
+        # --- Predict test points
+        cluster_assignments_test = model.predict(Xt_pca)
+        preds_raw = np.array([cluster_pred.get(cl, 0) for cl in cluster_assignments_test])
+        y_true = test_df['evil'].astype(int).values
+
+        # --- Distance matrix for refining by cutoff
+        dists_matrix = np.linalg.norm(Xt_pca[:, np.newaxis, :] - centers[np.newaxis, :, :], axis=2)
+        dmin = dists_matrix.min(axis=1)
+
+        for i, frac in enumerate(cutoffs_frac):
+            N = max(1, int(frac * len(Xt_pca)))
+            idx_anom = np.argsort(dmin)[-N:]
+            preds = np.zeros(len(Xt_pca), dtype=int)
+            preds[idx_anom] = 1
+
+            metrics['precision_pos'][rep, i] = precision_score(y_true, preds, zero_division=0)
+            metrics['recall_pos'][rep, i] = recall_score(y_true, preds, zero_division=0)
+            metrics['f1_pos'][rep, i] = f1_score(y_true, preds, zero_division=0)
+            metrics['precision_neg'][rep, i] = precision_score(y_true, preds, pos_label=0, zero_division=0)
+            metrics['recall_neg'][rep, i] = recall_score(y_true, preds, pos_label=0, zero_division=0)
+            metrics['f1_neg'][rep, i] = f1_score(y_true, preds, pos_label=0, zero_division=0)
+            metrics['f1'][rep, i] = compute_true_f1(y_true, preds)
+            metrics['mutual_info'][rep, i] = mutual_info_score(y_true, preds)
+
+    return {k: np.nanmean(v, axis=0).tolist() for k, v in metrics.items()}
+
+
+
 def external_eval_dbscan_split(
     df,
     cluster_size, label_size, test_size,
@@ -637,8 +741,8 @@ def main():
     n_runs = 30
     int_sample = 10000
     ext_fracs = np.arange(0.01, 1, 0.01)
-    threshold_k = 15
-
+    threshold_k = 5
+    cutoffs_frac = np.arange(0.01, 1.0, 0.01)
     out_dir = 'results'
     os.makedirs(out_dir, exist_ok=True)
     report_dir = os.path.join(out_dir, 'reports')
@@ -693,6 +797,7 @@ def main():
         ('gmm', 'gmm', best_k_sil['gmm'], best_dim_sil['gmm']),
         ('fcm', 'fcm', best_k_sil['fcm'], best_dim_sil['fcm']),
     ]
+
     print("\n📌 External Evaluation Configuration:")
     for mid, method, k, d in ext_methods:
         print(f"{mid:>16}: method='{method}', clusters={k}, PCA dims={d}")
@@ -700,52 +805,67 @@ def main():
 
     results = {}
     ext_raw = {}
-    for mid, mname, k, d in ext_methods:
-        # if k is large, override to DBSCAN logic
-        if mname != 'kmeans' and k >= threshold_k:
-            print(f"⚠️ {mname!r} has k={k} ≥ {threshold_k}; using DBSCAN anomaly‐labeling logic")
-            method_flag = 'dbscan'
-        else:
-            method_flag = mname
-
-        # run external_eval_single with either the original method or DBSCAN
-        runs = [
-            external_eval_single(
-                X_full, y_full, ext_fracs,
-                method=method_flag,
+    for mid, method, k, d in ext_methods:
+        if method == 'kmeans':
+            # Run KMeans split labeling
+            kmeans_result = external_eval_kmeans_split(
+                df,
+                cluster_size=cluster_size,
+                label_size=label_size,
+                test_size=test_size,
                 n_clusters=k,
                 pca_dims=d,
-                sample_size=int_sample,
-                seed=seed
+                n_repeats=n_runs
             )
-            for seed in range(n_runs)
-        ]
+            results[mid] = kmeans_result
+            # Save KMeans result as CSV
+            # After getting the result
+            df_kmeans = pd.DataFrame(kmeans_result, index=(cutoffs_frac * 100))
+            df_kmeans.index.name = '% cutoff'
+            df_kmeans.to_csv(os.path.join(out_dir, 'metrics', f'{mid}_metrics.csv'))
 
-        # aggregate and save
-        results[mid] = average_metrics(runs)
-        ext_raw[mid] = runs
-        dfm = pd.DataFrame(results[mid], index=(ext_fracs * 100))
-        dfm.index.name = '% cutoff'
-        dfm.to_csv(os.path.join(out_dir, 'metrics', f'{mid}_metrics.csv')
-)
+        else:
+            # Handle other algorithms
+            method_flag = 'dbscan' if (method != 'kmeans' and k >= threshold_k) else method
+            if method_flag == 'dbscan':
+                print(f"⚠️ {method!r} has k={k} ≥ {threshold_k}; using DBSCAN anomaly‐labeling logic")
 
-        # 2b) Custom DBSCAN split-based external evaluation
-        dbsplit = external_eval_dbscan_split(
-            df,
-            cluster_size=cluster_size,
-            label_size=label_size,
-            test_size=test_size,
-            eps=best_eps_dbscan,
-            pca_dims=best_dim_sil['dbscan']
-        )
+            # Run multiple trials
+            runs = [
+                external_eval_single(
+                    X_full, y_full, ext_fracs,
+                    method=method_flag,
+                    n_clusters=k,
+                    pca_dims=d,
+                    sample_size=int_sample,
+                    seed=seed
+                )
+                for seed in range(n_runs)
+            ]
 
-        dfdb = pd.DataFrame(dbsplit, index=(ext_fracs * 100))
-        dfdb.index.name = '% cutoff'
-        dfdb.to_csv(os.path.join(out_dir, 'metrics', 'dbscan_split_metrics.csv'))
+            ext_raw[mid] = runs
+            results[mid] = average_metrics(runs)
 
-    # 2c) Add DBSCAN to results and run statistical tests on F1_pos
-    results['dbscan_split'] = {k: [v] for k, v in dbsplit.items()}
+            # Save multi-cutoff result
+            df_mid = pd.DataFrame(results[mid], index=(ext_fracs * 100))
+            df_mid.index.name = '% cutoff'
+            df_mid.to_csv(os.path.join(out_dir, 'metrics', f'{mid}_metrics.csv'))
 
+    # --- 2b) Save DBSCAN split result separately
+    dbsplit_result = external_eval_dbscan_split(
+        df,
+        cluster_size=cluster_size,
+        label_size=label_size,
+        test_size=test_size,
+        eps=best_eps_dbscan,
+        pca_dims=best_dim_sil['dbscan']
+    )
+    results['dbscan_split'] = {k: [v] for k, v in dbsplit_result.items()}
+
+    # Save DBSCAN split results
+    df_dbscan = pd.DataFrame(results['dbscan_split'], index=[1])
+    df_dbscan.index.name = '% cutoff'
+    df_dbscan.to_csv(os.path.join(out_dir, 'metrics', 'dbscan_split_metrics.csv'))
     stat_reports = []
     # ANOVA
     f_stat, p_anova = f_oneway(*(results[mid]['f1_pos'] for mid in results))
@@ -826,15 +946,44 @@ def main():
 
     pd.DataFrame(all_stats).to_csv(os.path.join(out_dir, 'all_clusters_stats.csv'), index=False)
 
-    # 5) DBSCAN pipeline (eventId_MCA) — 30 runs using cluster-label logic
-    print("\n🔍 Running DBSCAN on eventId_MCA columns using nearest-cluster evil label assignment")
+    # ---------------- KMeans-based Feature Importance ---------------- #
+
+    print("\n🔍 Now running feature importance using KMeans clustering (5 dims, 8 clusters)...")
+
+    # Prepare data
+    X_cluster = cluster_df[feats].values
+
+    # PCA to 5 dims
+    pca_kmeans = PCA(n_components=5, random_state=42)
+    Xc_pca = pca_kmeans.fit_transform(X_cluster)
+
+    # KMeans with 8 clusters
+    kmeans_model = KMeans(n_clusters=8, random_state=42, n_init=10)
+    kmeans_labels = kmeans_model.fit_predict(Xc_pca)
+
+    # Investigate each cluster
+    feats_df = cluster_df[feats].copy()
+    all_stats_kmeans = []
+
+    for cl in np.unique(kmeans_labels):
+        # (here we *pretend* a cluster is "evil" just to get feature separation)
+        stats_result = investigate_cluster_statistically(feats_df, kmeans_labels, cl, cluster_is_evil=True)
+        all_stats_kmeans.extend(stats_result)
+
+    # Save KMeans-based feature importance to CSV
+    pd.DataFrame(all_stats_kmeans).to_csv(os.path.join(out_dir, 'all_clusters_stats_kmeans.csv'), index=False)
+
+    # -------------------- 5) DBSCAN and KMeans on eventId_MCA -------------------- #
+
+    print("\n🔍 Running DBSCAN and KMeans on eventId_MCA columns using nearest-cluster evil label assignment")
 
     mca_cols = [c for c in df.columns if c.startswith('eventId_MCA_')]
 
-    metrics_mca = {
+    # Initialize metric collectors
+    metrics_mca_dbscan = {
         'precision_pos': [], 'recall_pos': [], 'f1_pos': [],
         'precision_neg': [], 'recall_neg': [], 'f1_neg': [],
-        'f1' : [], 'mutual_info': []
+        'f1': [], 'mutual_info': []
     }
 
     for run in range(n_runs):
@@ -842,66 +991,53 @@ def main():
             df, cluster_size, label_size, test_size, seed=42 + run
         )
 
+        # Prepare features
         Xc = cluster_df[mca_cols].values
         Xl = label_df[mca_cols].values
         Xt = test_df[mca_cols].values
-
-        labels = DBSCAN(eps=best_eps_dbscan, min_samples=20).fit_predict(Xc)
-        nbrs = NearestNeighbors(n_neighbors=1).fit(Xc)
-
-        # Label clusters based on label_df
-        _, idx_lbl = nbrs.kneighbors(Xl)
-        matched_lbls = labels[idx_lbl.flatten()]
         yl = label_df['evil'].astype(int).values
-
-        thr = 0.2
-        cluster_pred = {
-            cl: int((matched_lbls == cl).sum() > 0 and yl[matched_lbls == cl].mean() > thr)
-            for cl in np.unique(labels)
-        }
-
-        # Predict test labels by assigning each test point to its cluster
-        _, idx_test = nbrs.kneighbors(Xt)
-        test_lbls = labels[idx_test.flatten()]
-        preds = np.array([cluster_pred.get(lbl, 0) for lbl in test_lbls])
-
         y_true = test_df['evil'].astype(int).values
 
-        # Collect metrics
-        metrics_mca['precision_pos'].append(precision_score(y_true, preds, zero_division=0))
-        metrics_mca['recall_pos'].append(recall_score(y_true, preds, zero_division=0))
-        metrics_mca['f1_pos'].append(f1_score(y_true, preds, zero_division=0))
-        metrics_mca['precision_neg'].append(precision_score(y_true, preds, pos_label=0, zero_division=0))
-        metrics_mca['recall_neg'].append(recall_score(y_true, preds, pos_label=0, zero_division=0))
-        metrics_mca['f1_neg'].append(f1_score(y_true, preds, pos_label=0, zero_division=0))
-        metrics_mca['f1'].append(compute_true_f1(y_true, preds))
-        metrics_mca['mutual_info'].append(mutual_info_score(y_true, preds))
+        # ------------------ DBSCAN ------------------ #
+        dbscan_labels = DBSCAN(eps=best_eps_dbscan, min_samples=20).fit_predict(Xc)
+        dbscan_nbrs = NearestNeighbors(n_neighbors=1).fit(Xc)
+        _, idx_lbl_dbscan = dbscan_nbrs.kneighbors(Xl)
+        matched_dbscan = dbscan_labels[idx_lbl_dbscan.flatten()]
 
-    # Compute average metrics
-    avg_metrics_mca = {k: np.mean(v) for k, v in metrics_mca.items()}
+        cluster_pred_dbscan = {
+            cl: int((matched_dbscan == cl).sum() > 0 and yl[matched_dbscan == cl].mean() > 0.2)
+            for cl in np.unique(dbscan_labels)
+        }
 
-    print("\n📊 Avg EventId_MCA DBSCAN Metrics (Label-by-cluster-assignment):")
-    for k, v in avg_metrics_mca.items():
-        print(f"{k:>15}: {v:.4f}")
+        _, idx_test_dbscan = dbscan_nbrs.kneighbors(Xt)
+        test_lbls_dbscan = dbscan_labels[idx_test_dbscan.flatten()]
+        preds_dbscan = np.array([cluster_pred_dbscan.get(lbl, 0) for lbl in test_lbls_dbscan])
 
-    # Save to file
-    with open(os.path.join(out_dir, 'dbscan_mca_report.txt'), 'w') as f:
-        f.write("EventId_MCA DBSCAN Metrics (Cluster-Based Labeling)\n")
-        for k, v in avg_metrics_mca.items():
-            f.write(f"{k:>15}: {v:.4f}\n")
+        # Save DBSCAN metrics
+        metrics_mca_dbscan['precision_pos'].append(precision_score(y_true, preds_dbscan, zero_division=0))
+        metrics_mca_dbscan['recall_pos'].append(recall_score(y_true, preds_dbscan, zero_division=0))
+        metrics_mca_dbscan['f1_pos'].append(f1_score(y_true, preds_dbscan, zero_division=0))
+        metrics_mca_dbscan['precision_neg'].append(precision_score(y_true, preds_dbscan, pos_label=0, zero_division=0))
+        metrics_mca_dbscan['recall_neg'].append(recall_score(y_true, preds_dbscan, pos_label=0, zero_division=0))
+        metrics_mca_dbscan['f1_neg'].append(f1_score(y_true, preds_dbscan, pos_label=0, zero_division=0))
+        metrics_mca_dbscan['f1'].append(compute_true_f1(y_true, preds_dbscan))
+        metrics_mca_dbscan['mutual_info'].append(mutual_info_score(y_true, preds_dbscan))
 
-    pd.DataFrame(metrics_mca).to_csv(
-        os.path.join(out_dir, 'dbscan_mca_all_metrics.csv'), index=False
-    )
-    # 6) DBSCAN pipeline (processName_MCA) — 30 runs using cluster-label logic
-    print("\n🔍 Running DBSCAN on name columns using nearest-cluster evil label assignment")
+
+    # ------------------ Save Results ------------------ #
+    #DBSCAN metrics
+    save_full_metrics(metrics_mca_dbscan, out_dir, 'dbscan_mca', "EventId_MCA DBSCAN Metrics (Cluster-Based Labeling)")
+    # -------------------- 6) DBSCAN on processName_MCA -------------------- #
+
+    print("\n🔍 Running DBSCAN and KMeans on processName_MCA columns using nearest-cluster evil label assignment")
 
     mca_cols = [c for c in df.columns if c.startswith('processName_MCA')]
 
-    metrics_mca = {
+    # Initialize metric collectors
+    metrics_mca_dbscan = {
         'precision_pos': [], 'recall_pos': [], 'f1_pos': [],
         'precision_neg': [], 'recall_neg': [], 'f1_neg': [],
-        'f1':[], 'mutual_info': []
+        'f1': [], 'mutual_info': []
     }
 
     for run in range(n_runs):
@@ -909,60 +1045,45 @@ def main():
             df, cluster_size, label_size, test_size, seed=42 + run
         )
 
+        # Prepare features
         Xc = cluster_df[mca_cols].values
         Xl = label_df[mca_cols].values
         Xt = test_df[mca_cols].values
-
-        labels = DBSCAN(eps=best_eps_dbscan, min_samples=20).fit_predict(Xc)
-        nbrs = NearestNeighbors(n_neighbors=1).fit(Xc)
-
-        # Label clusters based on label_df
-        _, idx_lbl = nbrs.kneighbors(Xl)
-        matched_lbls = labels[idx_lbl.flatten()]
         yl = label_df['evil'].astype(int).values
-
-        thr = 0.2
-        cluster_pred = {
-            cl: int((matched_lbls == cl).sum() > 0 and yl[matched_lbls == cl].mean() > thr)
-            for cl in np.unique(labels)
-        }
-
-        # Predict test labels by assigning each test point to its cluster
-        _, idx_test = nbrs.kneighbors(Xt)
-        test_lbls = labels[idx_test.flatten()]
-        preds = np.array([cluster_pred.get(lbl, 0) for lbl in test_lbls])
-
         y_true = test_df['evil'].astype(int).values
 
-        # Collect metrics
-        metrics_mca['precision_pos'].append(precision_score(y_true, preds, zero_division=0))
-        metrics_mca['recall_pos'].append(recall_score(y_true, preds, zero_division=0))
-        metrics_mca['f1_pos'].append(f1_score(y_true, preds, zero_division=0))
-        metrics_mca['precision_neg'].append(precision_score(y_true, preds, pos_label=0, zero_division=0))
-        metrics_mca['recall_neg'].append(recall_score(y_true, preds, pos_label=0, zero_division=0))
-        metrics_mca['f1_neg'].append(f1_score(y_true, preds, pos_label=0, zero_division=0))
-        metrics_mca['f1'].append(compute_true_f1(y_true, preds))
-        metrics_mca['mutual_info'].append(mutual_info_score(y_true, preds))
+        # ------------------ DBSCAN ------------------ #
+        dbscan_labels = DBSCAN(eps=best_eps_dbscan, min_samples=20).fit_predict(Xc)
+        dbscan_nbrs = NearestNeighbors(n_neighbors=1).fit(Xc)
+        _, idx_lbl_dbscan = dbscan_nbrs.kneighbors(Xl)
+        matched_dbscan = dbscan_labels[idx_lbl_dbscan.flatten()]
 
-    # Compute average metrics
-    avg_metrics_mca = {k: np.mean(v) for k, v in metrics_mca.items()}
+        cluster_pred_dbscan = {
+            cl: int((matched_dbscan == cl).sum() > 0 and yl[matched_dbscan == cl].mean() > 0.2)
+            for cl in np.unique(dbscan_labels)
+        }
 
-    print("\n📊 Avg processName_MCA DBSCAN Metrics (Label-by-cluster-assignment):")
-    for k, v in avg_metrics_mca.items():
-        print(f"{k:>15}: {v:.4f}")
+        _, idx_test_dbscan = dbscan_nbrs.kneighbors(Xt)
+        test_lbls_dbscan = dbscan_labels[idx_test_dbscan.flatten()]
+        preds_dbscan = np.array([cluster_pred_dbscan.get(lbl, 0) for lbl in test_lbls_dbscan])
 
-    # Save to file
-    with open(os.path.join(out_dir, 'processName_MCA_report.txt'), 'w') as f:
-        f.write("processName_MCA DBSCAN Metrics (Cluster-Based Labeling)\n")
-        for k, v in avg_metrics_mca.items():
-            f.write(f"{k:>15}: {v:.4f}\n")
+        # Save DBSCAN metrics
+        metrics_mca_dbscan['precision_pos'].append(precision_score(y_true, preds_dbscan, zero_division=0))
+        metrics_mca_dbscan['recall_pos'].append(recall_score(y_true, preds_dbscan, zero_division=0))
+        metrics_mca_dbscan['f1_pos'].append(f1_score(y_true, preds_dbscan, zero_division=0))
+        metrics_mca_dbscan['precision_neg'].append(precision_score(y_true, preds_dbscan, pos_label=0, zero_division=0))
+        metrics_mca_dbscan['recall_neg'].append(recall_score(y_true, preds_dbscan, pos_label=0, zero_division=0))
+        metrics_mca_dbscan['f1_neg'].append(f1_score(y_true, preds_dbscan, pos_label=0, zero_division=0))
+        metrics_mca_dbscan['f1'].append(compute_true_f1(y_true, preds_dbscan))
+        metrics_mca_dbscan['mutual_info'].append(mutual_info_score(y_true, preds_dbscan))
 
-    pd.DataFrame(metrics_mca).to_csv(
-        os.path.join(out_dir, 'processName_MCA_metrics.csv'), index=False)
 
+    # ------------------ Save Results ------------------ #
+
+    # DBSCAN metrics
+    save_full_metrics(metrics_mca_dbscan, out_dir, 'processName_mca_dbscan', "processName_MCA DBSCAN Metrics (Cluster-Based Labeling)")
 
 if __name__ == '__main__':
     start = time.time()
     main()
     print(f"\n✅ Pipeline completed in {time.time()- start} seconds. Check the 'results/' folder for all outputs.")
-
