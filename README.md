@@ -246,28 +246,7 @@ tqdm==4.66.1            # Progress bars
 - **Scalability Analysis**: Techniques for handling large-scale security logs
 - **Interpretability**: Focus on explainable AI for security applications
 
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit pull requests or open issues for:
-- Additional anomaly detection algorithms
-- Performance optimizations
-- Visualization improvements
-- Documentation enhancements
-
 ## 📄 License
-
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- **BETH Dataset**: Thanks to the creators of the BETH dataset for providing high-quality cybersecurity data
-- **Bar Ilan University**: For the academic framework and research support
-- **Open Source Community**: For the excellent machine learning libraries that made this project possible
-
-## 📞 Contact
-
-For questions or collaboration opportunities, please open an issue in the GitHub repository.
-
 ---
-
-**Note**: This project is for educational and research purposes. The anomaly detection methods explored here provide a foundation for understanding unsupervised learning in cybersecurity contexts. 
